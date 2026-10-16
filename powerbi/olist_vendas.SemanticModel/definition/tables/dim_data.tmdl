@@ -1,0 +1,100 @@
+table dim_data
+	lineageTag: f6db9832-710e-4f27-a6a5-6ae44c58ebf2
+	dataCategory: Time
+
+	column sk_data
+		dataType: int64
+		formatString: 0
+		lineageTag: ba0b84f5-f109-4a4e-a71c-374e979ad525
+		summarizeBy: none
+		sourceColumn: sk_data
+
+		annotation SummarizationSetBy = Automatic
+
+	column data
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: 8da24f64-d58a-42dc-aff2-86288577433e
+		summarizeBy: none
+		sourceColumn: data
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column ano
+		dataType: int64
+		formatString: 0
+		lineageTag: cd9ac24d-4548-4dae-8ce3-8e0ecae1bfdd
+		summarizeBy: none
+		sourceColumn: ano
+
+		annotation SummarizationSetBy = Automatic
+
+	column trimestre
+		dataType: int64
+		formatString: 0
+		lineageTag: 57c09d0d-9255-4ff8-adb5-09dbd4fcdb4d
+		summarizeBy: none
+		sourceColumn: trimestre
+
+		annotation SummarizationSetBy = Automatic
+
+	column mes
+		dataType: int64
+		formatString: 0
+		lineageTag: 80d6db69-8fd1-486b-8f44-dc97b4218054
+		summarizeBy: none
+		sourceColumn: mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column ano_mes
+		dataType: string
+		lineageTag: 12cc9b04-1925-49ee-945b-3e0b6d47a63d
+		summarizeBy: none
+		sourceColumn: ano_mes
+
+		annotation SummarizationSetBy = Automatic
+
+	column dia
+		dataType: int64
+		formatString: 0
+		lineageTag: 51d634e0-1d30-4c87-a20b-9bda3bbb498d
+		summarizeBy: none
+		sourceColumn: dia
+
+		annotation SummarizationSetBy = Automatic
+
+	column dia_semana_num
+		dataType: int64
+		formatString: 0
+		lineageTag: 84e68b63-addd-490f-a997-a8c321f262e9
+		summarizeBy: none
+		sourceColumn: dia_semana_num
+
+		annotation SummarizationSetBy = Automatic
+
+	column fim_de_semana
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 64a423aa-cd8d-4ddb-890b-53ffdaffa938
+		summarizeBy: none
+		sourceColumn: fim_de_semana
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_data = m
+		mode: import
+		source =
+				let
+				    Fonte = DatabricksMultiCloud.Catalogs("dbc-eb71337e-4cba.cloud.databricks.com", "/sql/1.0/warehouses/2acace36d690c6ad", [Catalog="workspace", Database="olist_gold", QueryTags=null, EnableAutomaticProxyDiscovery=null, Implementation="2.0", Protocol=null]),
+				    dim_data_olist_gold_workspace_Table = Fonte{[Item="dim_data",Schema="olist_gold",Catalog="workspace",Kind="Table"]}[Data]
+				in
+				    dim_data_olist_gold_workspace_Table
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

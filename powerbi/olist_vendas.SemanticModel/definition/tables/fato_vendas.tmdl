@@ -1,0 +1,163 @@
+table fato_vendas
+	lineageTag: ce301fe6-5c4c-4eb1-95ab-bfe5ea8c168b
+
+	column order_id
+		dataType: string
+		lineageTag: ac333a5c-a9aa-4f7e-96db-cf156f33e1f9
+		summarizeBy: none
+		sourceColumn: order_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_seq
+		dataType: int64
+		formatString: 0
+		lineageTag: 160ffaf8-d797-49af-b04d-aaade29e3391
+		summarizeBy: sum
+		sourceColumn: item_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_id
+		dataType: string
+		isHidden
+		lineageTag: 5cd43f30-c806-4377-9cd6-04c0af2da13f
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_id
+		dataType: string
+		isHidden
+		lineageTag: 2decb891-aa36-45ab-a9f7-d9c7d336dd6e
+		summarizeBy: none
+		sourceColumn: product_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column seller_id
+		dataType: string
+		isHidden
+		lineageTag: 5e45543a-c629-41ef-9794-0f32214180e6
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column sk_data_compra
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: ce31ea5b-2e17-4282-8dc6-fb236190e282
+		summarizeBy: none
+		sourceColumn: sk_data_compra
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column status
+		dataType: string
+		lineageTag: d28cb5a9-f0fe-45d3-8702-30a7f30ac81a
+		summarizeBy: none
+		sourceColumn: status
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column preco
+		dataType: double
+		lineageTag: 0ad95a4e-921b-431b-a4e7-88fea7033544
+		summarizeBy: sum
+		sourceColumn: preco
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column frete
+		dataType: double
+		lineageTag: 0f6cd494-3efa-4278-a939-b4e06adb2ee4
+		summarizeBy: sum
+		sourceColumn: frete
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column valor_total
+		dataType: double
+		lineageTag: 1ddb7122-7f36-4fa4-9ed5-8f37a335dad7
+		summarizeBy: sum
+		sourceColumn: valor_total
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column dias_entrega
+		dataType: int64
+		formatString: 0
+		lineageTag: 190578e2-c6d7-4c84-9645-0ae59ae578af
+		summarizeBy: sum
+		sourceColumn: dias_entrega
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column entregue_com_atraso
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d116d0e6-f91f-44b6-883c-2d18cbdad121
+		summarizeBy: none
+		sourceColumn: entregue_com_atraso
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column nota_avaliacao
+		dataType: int64
+		formatString: 0
+		lineageTag: 34db5591-8470-45f8-910f-aba37ba914b4
+		summarizeBy: sum
+		sourceColumn: nota_avaliacao
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fato_vendas = m
+		mode: import
+		source =
+				let
+				    Fonte = DatabricksMultiCloud.Catalogs("dbc-eb71337e-4cba.cloud.databricks.com", "/sql/1.0/warehouses/2acace36d690c6ad", [Catalog="workspace", Database="olist_gold", QueryTags=null, EnableAutomaticProxyDiscovery=null, Implementation="2.0", Protocol=null]),
+				    fato_vendas_olist_gold_workspace_Table = Fonte{[Item="fato_vendas",Schema="olist_gold",Catalog="workspace",Kind="Table"]}[Data]
+				in
+				    fato_vendas_olist_gold_workspace_Table
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

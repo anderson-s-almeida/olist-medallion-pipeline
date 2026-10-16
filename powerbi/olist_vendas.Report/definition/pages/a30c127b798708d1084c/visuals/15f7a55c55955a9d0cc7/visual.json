@@ -1,0 +1,53 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
+  "name": "15f7a55c55955a9d0cc7",
+  "position": {
+    "x": 0,
+    "y": 0,
+    "z": 0,
+    "height": 1080.338028169014,
+    "width": 1920,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "htmlContent443BE3AD55E043BF878BED274D3A6865",
+    "query": {
+      "queryState": {
+        "content": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Medidas_Logistica"
+                    }
+                  },
+                  "Property": "HTML Logistica"
+                }
+              },
+              "queryRef": "_Medidas_Logistica.HTML Logistica",
+              "nativeQueryRef": "HTML Logistica"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "compatibility": [
+        {
+          "properties": {
+            "legacyRendering": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

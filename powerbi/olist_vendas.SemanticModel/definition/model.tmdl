@@ -1,0 +1,28 @@
+model Model
+	culture: pt-BR
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: pt-BR
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["dim_cliente","dim_data","dim_produto","dim_vendedor","fato_vendas","_Medidas_Executiva","_Medidas_html","_Medidas_Produto","_Medidas_Logistica","_Medidas_Vendedores"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table dim_cliente
+ref table dim_data
+ref table dim_produto
+ref table dim_vendedor
+ref table fato_vendas
+ref table _Medidas_Executiva
+ref table _Medidas_html
+ref table _Medidas_Produto
+ref table _Medidas_Logistica
+ref table _Medidas_Vendedores
+
+ref cultureInfo pt-BR
+

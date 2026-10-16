@@ -1,0 +1,595 @@
+table _Medidas_Produto
+	lineageTag: 231af7b9-d980-4111-ae50-26d59f37a7ec
+
+	measure 'Itens Vendidos' = COUNTROWS ( fato_vendas )
+		formatString: 0
+		lineageTag: 014b9481-1bb0-426e-9bf1-8a2449025afc
+
+	measure 'Produtos Vendidos' = DISTINCTCOUNT ( fato_vendas[product_id] )
+		formatString: 0
+		lineageTag: e759573e-24dd-4c76-8612-36a2f758dc95
+
+	measure 'Preço Médio Item' = AVERAGE ( fato_vendas[preco] )
+		lineageTag: 908c7447-7cc1-4ed8-8c5b-75223b58ff71
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Itens por Pedido' = DIVIDE ( [Itens Vendidos], [Pedidos] )
+		lineageTag: 5a914546-ef52-42c9-87bb-77ccd977dd51
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Frete Médio Item' = AVERAGE ( fato_vendas[frete] )
+		lineageTag: bc37e5ef-7995-47a3-945b-f62dfb789e2b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Categorias Ativas' = CALCULATE ( DISTINCTCOUNT ( dim_produto[categoria] ), fato_vendas )
+		formatString: 0
+		lineageTag: d6666e1d-3f73-49ed-9626-6085cb1b93bc
+
+	measure 'Categorias Total' = COUNTROWS ( ALL ( dim_produto[categoria] ) )
+		formatString: 0
+		lineageTag: dfd9632a-133d-4d40-be18-184fbbf4b6c8
+
+	measure 'Ref Ano Mes' =
+			
+			VAR _b =
+			    ADDCOLUMNS (
+			        VALUES ( dim_data[ano_mes] ),
+			        "@ord", CALCULATE ( MIN ( dim_data[sk_data] ) ),
+			        "@ped", [Pedidos]
+			    )
+			VAR _mx = MAXX ( _b, [@ped] )
+			RETURN
+			    MAXX ( FILTER ( _b, [@ped] >= _mx * 0.1 ), [@ord] )
+		formatString: 0
+		lineageTag: c5bdaaf5-ff44-41c6-889b-0d4f20ec901b
+
+	measure 'HTML Estilo Produtos' =
+			
+			"<style>
+			.dash{font-family:'Segoe UI',sans-serif;color:#e2e8f0;padding:16px 18px;box-sizing:border-box;height:100vh;
+			 background:radial-gradient(circle at 15% 0%,#1e1b4b 0%,transparent 45%),radial-gradient(circle at 95% 100%,#0c3a5e 0%,transparent 45%),#070b1a;
+			 display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:78px 46px 1fr 1fr 1fr;
+			 grid-template-areas:'h h h h h h h h h h h h' 'f f f f f f f f f f f f' 'r r r r r p p p p p p p' 'r r r r r b b b b w w w' 'k k k k k n n n x x x x';}
+			.card{background:linear-gradient(160deg,rgba(30,41,82,.85),rgba(12,17,40,.92));border:1px solid rgba(96,165,250,.25);border-radius:16px;
+			 box-shadow:0 0 18px rgba(59,130,246,.18),inset 0 0 14px rgba(139,92,246,.08);padding:14px 18px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+			.header{grid-area:h;flex-direction:row !important;justify-content:space-between;align-items:center;gap:12px;padding:8px 18px !important;}
+			.title{font-size:20px;font-weight:700;color:#ffffff;}
+			.sub{font-size:12px;color:#94a3b8;margin-top:2px;}
+			.pills{display:flex;gap:10px;flex-wrap:wrap;}
+			.pill{background:rgba(15,23,42,.85);border:1px solid rgba(139,92,246,.35);border-radius:12px;padding:4px 16px;text-align:center;box-shadow:0 0 10px rgba(139,92,246,.15);}
+			.pill .lbl{font-size:10px;}
+			.pill .v{font-size:17px;font-weight:700;color:#ffffff;}
+			.lbl{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;}
+			.ctitle{font-size:15px;font-weight:600;color:#ffffff;margin-bottom:8px;}
+			.dest{display:flex;gap:22px;align-items:center;flex:1;}
+			.icon{font-size:70px;width:130px;height:130px;border-radius:22px;display:flex;align-items:center;justify-content:center;
+			 background:rgba(15,23,42,.85);border:1px solid rgba(96,165,250,.35);box-shadow:0 0 22px rgba(59,130,246,.35);}
+			.kpi{display:flex;align-items:center;gap:10px;margin:7px 0;}
+			.kdot{width:26px;height:26px;border-radius:50%;background:rgba(59,130,246,.18);border:1px solid rgba(96,165,250,.35);display:flex;align-items:center;justify-content:center;font-size:13px;}
+			.kv{font-size:19px;font-weight:700;color:#38bdf8;}
+			.bar-row{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;color:#cbd5e1;}
+			.bar-name{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+			.bar-bg{flex:1;height:12px;background:#1e293b;border-radius:5px;}
+			.bar{height:12px;border-radius:6px;background:linear-gradient(90deg,#3b82f6,#a855f7);box-shadow:0 0 8px rgba(139,92,246,.6);}
+			.bar-v{width:90px;text-align:right;font-weight:600;color:#ffffff;}
+			.minis{grid-area:s;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+			.mini{text-align:center;padding:12px 6px;display:flex;flex-direction:column;justify-content:center;}
+			.mini .mv{font-size:28px;font-weight:700;color:#38bdf8;margin-top:4px;}
+			.mini .mi{font-size:20px;margin-top:2px;}
+			.leg{display:flex;justify-content:center;gap:16px;font-size:12px;color:#94a3b8;margin-top:6px;}
+			.leg span{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+			.kp{display:flex;align-items:center;gap:10px;text-align:left;padding:6px 14px !important;}
+			.kp .v{font-size:18px;}
+			.up{color:#34d399;font-size:11px;font-weight:600;}
+			.dn{color:#f87171;font-size:11px;font-weight:600;}
+			.split{display:flex;gap:10px;flex:1;min-height:0;}
+			.split>div{flex:1;display:flex;flex-direction:column;min-height:0;}
+			.nrow{display:flex;align-items:center;gap:8px;font-size:12px;color:#cbd5e1;}
+			.nrow .bar-bg{height:10px;}
+			.nrow .bar{height:10px;}
+			.mini .sub2{font-size:11px;color:#94a3b8;margin-top:2px;}
+			.rank{position:absolute;right:0;bottom:4px;width:160px;background:rgba(11,16,35,.88);border:1px solid rgba(139,92,246,.35);border-radius:10px;padding:8px 10px;box-shadow:0 0 12px rgba(139,92,246,.2);}
+			.rk{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(96,165,250,.12);}
+			.tbl{width:100%;border-collapse:collapse;font-size:11.5px;}
+			.tbl th{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;text-align:right;padding:6px;border-bottom:1px solid rgba(96,165,250,.25);font-weight:600;}
+			.tbl th:first-child,.tbl td:first-child{text-align:left;}
+			.tbl td{padding:4px 5px;border-bottom:1px solid rgba(96,165,250,.10);text-align:right;color:#e2e8f0;white-space:nowrap;}
+			.tbl tr:hover td{background:rgba(59,130,246,.08);}
+			.mb{display:inline-block;height:8px;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#a855f7);vertical-align:middle;margin-right:6px;box-shadow:0 0 6px rgba(139,92,246,.5);}
+			.chip{display:inline-block;padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600;}
+			.cg{background:rgba(52,211,153,.15);color:#34d399;}
+			.cr{background:rgba(248,113,113,.15);color:#f87171;}
+			.cy{background:rgba(251,191,36,.15);color:#fbbf24;}
+			.kgrid{grid-area:k;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;}
+			.kgrid .mini{padding:10px 8px;}
+			.kgrid .mv{font-size:20px !important;}
+			.nm{font-size:12px;color:#ffffff;font-weight:600;text-transform:capitalize;line-height:1.25;margin-top:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+			</style>"
+		lineageTag: 4ec4df05-6a3c-434d-9ee8-1e7f6cc3c01a
+
+	measure 'HTML Cab Produtos' = ```
+			
+			VAR _o = [Ref Ano Mes]
+			VAR _ano = INT ( _o / 10000 )
+			VAR _mes = INT ( MOD ( _o, 10000 ) / 100 )
+			VAR _filtroMes = ISFILTERED ( dim_data[mes] ) || ISFILTERED ( dim_data[ano_mes] )
+			VAR _prodA = CALCULATE ( [Produtos Vendidos], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _prodB = CALCULATE ( [Produtos Vendidos], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _catA = CALCULATE ( [Categorias Ativas], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _catB = CALCULATE ( [Categorias Ativas], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _preA = CALCULATE ( [Preço Médio Item], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _preB = CALCULATE ( [Preço Médio Item], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _ippA = CALCULATE ( [Itens por Pedido], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _ippB = CALCULATE ( [Itens por Pedido], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _freA = CALCULATE ( [Frete Médio Item], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _freB = CALCULATE ( [Frete Médio Item], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			VAR _mesTxt = FORMAT ( DATE ( _ano, _mes, 1 ), "mmm" )
+			VAR _periodo = IF ( _filtroMes, _ano & " · meses selec.", _ano & " até " & _mesTxt )
+			VAR _base = IF ( _filtroMes, "vs " & ( _ano - 1 ), "vs jan–" & _mesTxt & "/" & ( _ano - 1 ) )
+			VAR _semBase = "<div class='lbl'>sem base de comparação</div>"
+			-- variação em %: verde quando sobe (no frete, subir é ruim e fica vermelho)
+			VAR _vProd = DIVIDE ( _prodA - _prodB, _prodB )
+			VAR _vPre = DIVIDE ( _preA - _preB, _preB )
+			VAR _vIpp = DIVIDE ( _ippA - _ippB, _ippB )
+			VAR _vFre = DIVIDE ( _freA - _freB, _freB )
+			VAR _txProd = IF ( ISBLANK ( _vProd ), _semBase, IF ( _vProd >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _vProd ), "0.0%" ) & " " & _base & "</div>" )
+			VAR _txPre = IF ( ISBLANK ( _vPre ), _semBase, IF ( _vPre >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _vPre ), "0.0%" ) & " " & _base & "</div>" )
+			VAR _txIpp = IF ( ISBLANK ( _vIpp ), _semBase, IF ( _vIpp >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _vIpp ), "0.0%" ) & " " & _base & "</div>" )
+			VAR _txFre = IF ( ISBLANK ( _vFre ), _semBase, IF ( _vFre >= 0, "<div class='dn'>▲ ", "<div class='up'>▼ " ) & FORMAT ( ABS ( _vFre ), "0.0%" ) & " " & _base & "</div>" )
+			VAR _dCat = _catA - _catB
+			VAR _txCat = IF ( ISBLANK ( _catB ), _semBase, IF ( _dCat >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & ABS ( _dCat ) & " vs " & ( _ano - 1 ) & "</div>" )
+			VAR _ini = CALCULATE ( MIN ( dim_data[data] ), fato_vendas )
+			VAR _fim = CALCULATE ( MAX ( dim_data[data] ), fato_vendas )
+			RETURN
+			    "<div class='card header'>
+			        <div>
+			            <div class='title'>Olist | Produtos & Categorias</div>
+			            <div class='sub'>E-commerce brasileiro · " & FORMAT ( _ini, "mm/yyyy" ) & " a " & FORMAT ( _fim, "mm/yyyy" ) & "</div>
+			            <div class='sub' style='color:#a78bfa'>Indicadores: " & _periodo & "</div>
+			        </div>
+			        <div class='pills'>
+			            <div class='pill kp'><div><div class='lbl'>Produtos vendidos</div><div class='v'>" & FORMAT ( _prodA, "#,##0" ) & "</div>" & _txProd & "</div></div>
+			            <div class='pill kp'><div><div class='lbl'>Categorias ativas</div><div class='v'>" & _catA & " de " & [Categorias Total] & "</div>" & _txCat & "</div></div>
+			            <div class='pill kp'><div><div class='lbl'>Preço médio item</div><div class='v'>" & FORMAT ( _preA, "R$ #,##0.00" ) & "</div>" & _txPre & "</div></div>
+			            <div class='pill kp'><div><div class='lbl'>Itens por pedido</div><div class='v'>" & FORMAT ( _ippA, "0.00" ) & "</div>" & _txIpp & "</div></div>
+			            <div class='pill kp'><div><div class='lbl'>Frete médio item</div><div class='v'>" & FORMAT ( _freA, "R$ #,##0.00" ) & "</div>" & _txFre & "</div></div>
+			        </div>
+			    </div>"
+			
+			```
+		lineageTag: 3a251909-c329-4754-8da7-c26ca695375a
+
+	measure 'HTML Ranking Categorias' =
+			
+			VAR _o = [Ref Ano Mes]
+			VAR _ano = INT ( _o / 10000 )
+			VAR _mes = INT ( MOD ( _o, 10000 ) / 100 )
+			VAR _todas = FILTER ( ADDCOLUMNS ( VALUES ( dim_produto[categoria] ), "@v", [Receita] ), NOT ISBLANK ( [@v] ) )
+			VAR _qtd = COUNTROWS ( _todas )
+			VAR _top =
+			    ADDCOLUMNS (
+			        TOPN ( 16, _todas, [@v], DESC ),
+			        "@p", [Pedidos],
+			        "@n", [Nota Média],
+			        "@a", [% Entregas com Atraso],
+			        "@ga", CALCULATE ( [Receita], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) ),
+			        "@gb", CALCULATE ( [Receita], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			    )
+			VAR _rk = ADDCOLUMNS ( _top, "@k", RANKX ( _top, [@v], , DESC ) )
+			VAR _max = MAXX ( _rk, [@v] )
+			VAR _linhas =
+			    CONCATENATEX (
+			        _rk,
+			        VAR _g = DIVIDE ( [@ga] - [@gb], [@gb] )
+			        VAR _ac = IF ( [@a] < 0.07, "cg", IF ( [@a] < 0.09, "cy", "cr" ) )
+			        RETURN
+			            "<tr>
+			                <td><span style='color:#64748b'>" & FORMAT ( [@k], "00" ) & "</span>&nbsp; <span style='text-transform:capitalize'>" & SUBSTITUTE ( dim_produto[categoria], "_", " " ) & "</span></td>
+			                <td><span class='mb' style='width:" & FORMAT ( DIVIDE ( [@v], _max ) * 55, "0" ) & "px'></span>R$ " & FORMAT ( [@v] / 1000, "#,##0" ) & " mil</td>
+			                <td>" & FORMAT ( [@p], "#,##0" ) & "</td>
+			                <td>" & FORMAT ( DIVIDE ( [@v], [@p] ), "R$ #,##0" ) & "</td>
+			                <td>" & FORMAT ( [@n], "0.00" ) & " ⭐</td>
+			                <td><span class='chip " & _ac & "'>" & FORMAT ( [@a], "0.0%" ) & "</span></td>
+			                <td>" & IF ( ISBLANK ( _g ), "<span class='chip'>—</span>", "<span class='chip " & IF ( _g >= 0, "cg'>▲ ", "cr'>▼ " ) & FORMAT ( ABS ( _g ), "0%" ) & "</span>" ) & "</td>
+			            </tr>",
+			        "", [@k], ASC
+			    )
+			RETURN
+			    "<div class='card' style='grid-area:r'>
+			        <div style='display:flex;justify-content:space-between;align-items:baseline'>
+			            <div class='ctitle'>Ranking de categorias</div>
+			            <div class='sub'>top " & MIN ( 16, _qtd ) & " de " & _qtd & " · ordenado por receita</div>
+			        </div>
+			        <div style='flex:1;overflow:hidden'>
+			            <table class='tbl'>
+			                <tr><th>Categoria</th><th>Receita</th><th>Pedidos</th><th>Ticket</th><th>Nota</th><th>% Atraso</th><th>vs " & ( _ano - 1 ) & "</th></tr>"
+			                & _linhas &
+			            "</table>
+			        </div>
+			    </div>"
+		lineageTag: 7f66936d-becb-4aba-86a2-9bb73e453042
+
+	measure 'HTML Curva ABC' =
+			
+			VAR _W = 800
+			VAR _H = 185
+			VAR _px = 30
+			VAR _py = 14
+			VAR _baseY = _H - 24
+			VAR _t = FILTER ( ADDCOLUMNS ( VALUES ( dim_produto[categoria] ), "@v", [Receita] ), NOT ISBLANK ( [@v] ) )
+			VAR _n = COUNTROWS ( _t )
+			VAR _tot = SUMX ( _t, [@v] )
+			VAR _max = MAXX ( _t, [@v] )
+			-- posição de cada categoria (desempate pelo nome)
+			VAR _r =
+			    ADDCOLUMNS (
+			        _t,
+			        "@i",
+			            VAR _v = [@v]
+			            VAR _c = dim_produto[categoria]
+			            RETURN COUNTROWS ( FILTER ( _t, [@v] > _v || ( [@v] = _v && dim_produto[categoria] < _c ) ) ) + 1
+			    )
+			VAR _r2 =
+			    ADDCOLUMNS (
+			        _r,
+			        "@cum",
+			            VAR _i = [@i]
+			            RETURN SUMX ( FILTER ( _r, [@i] <= _i ), [@v] )
+			    )
+			VAR _k80 = MINX ( FILTER ( _r2, [@cum] >= 0.8 * _tot ), [@i] )
+			VAR _k95 = MINX ( FILTER ( _r2, [@cum] >= 0.95 * _tot ), [@i] )
+			VAR _passo = DIVIDE ( _W - 2 * _px, MAX ( _n, 1 ) )
+			VAR _bw = MAX ( _passo * 0.7, 2 )
+			VAR _barras =
+			    CONCATENATEX (
+			        _r2,
+			        VAR _x = _px + ( [@i] - 0.5 ) * _passo
+			        VAR _h = DIVIDE ( [@v], _max ) * ( _baseY - _py - 10 )
+			        VAR _cor = IF ( [@i] <= _k80, "#a855f7", IF ( [@i] <= _k95, "#3b82f6", "#334155" ) )
+			        RETURN
+			            "<g><title>" & SUBSTITUTE ( dim_produto[categoria], "_", " " ) & ": R$ " & FORMAT ( [@v], "#,##0" ) & " · acumulado " & FORMAT ( DIVIDE ( [@cum], _tot ), "0.0%" ) & "</title>"
+			                & "<rect x='" & FORMAT ( _x - _bw / 2, "0" ) & "' y='" & FORMAT ( _baseY - _h, "0" ) & "' width='" & FORMAT ( _bw, "0" ) & "' height='" & FORMAT ( MAX ( _h, 1 ), "0" ) & "' rx='1.5' fill='" & _cor & "' opacity='0.9'/></g>",
+			        "", [@i], ASC
+			    )
+			VAR _linha =
+			    CONCATENATEX (
+			        _r2,
+			        FORMAT ( _px + ( [@i] - 0.5 ) * _passo, "0" ) & "," & FORMAT ( _baseY - DIVIDE ( [@cum], _tot ) * ( _baseY - _py ), "0" ),
+			        " ", [@i], ASC
+			    )
+			VAR _y80 = FORMAT ( _baseY - 0.8 * ( _baseY - _py ), "0" )
+			VAR _x80 = FORMAT ( _px + _k80 * _passo, "0" )
+			VAR _x95 = FORMAT ( _px + _k95 * _passo, "0" )
+			RETURN
+			    "<div class='card' style='grid-area:p'>
+			        <div style='display:flex;justify-content:space-between;align-items:baseline'>
+			            <div class='ctitle'>Curva ABC de categorias</div>
+			            <div style='font-size:12px;color:#94a3b8'><b style='color:#c4b5fd;font-size:16px'>" & _k80 & "</b> de " & _n & " categorias fazem <b style='color:#ffffff'>80%</b> da receita</div>
+			        </div>
+			        <svg viewBox='0 0 " & _W & " " & _H & "' style='flex:1;min-height:0;width:100%'>
+			            <line x1='" & _px & "' x2='" & ( _W - _px ) & "' y1='" & _y80 & "' y2='" & _y80 & "' stroke='#f472b6' stroke-dasharray='4 4' opacity='0.6'/>
+			            <text x='" & ( _W - _px ) & "' y='" & ( _y80 - 5 ) & "' text-anchor='end' font-size='10' fill='#f472b6'>80%</text>
+			            <line x1='" & _x80 & "' x2='" & _x80 & "' y1='" & _py & "' y2='" & _baseY & "' stroke='#f472b6' stroke-dasharray='4 4' opacity='0.6'/>"
+			            & _barras &
+			            "<polyline points='" & _linha & "' fill='none' stroke='#22d3ee' stroke-width='2.5'/>
+			            <text x='" & FORMAT ( ( _px + _x80 ) / 2, "0" ) & "' y='" & ( _H - 6 ) & "' text-anchor='middle' font-size='11' font-weight='700' fill='#c4b5fd'>Classe A</text>
+			            <text x='" & FORMAT ( ( _x80 + _x95 ) / 2, "0" ) & "' y='" & ( _H - 6 ) & "' text-anchor='middle' font-size='11' fill='#60a5fa'>B</text>
+			            <text x='" & FORMAT ( ( _x95 + _W - _px ) / 2, "0" ) & "' y='" & ( _H - 6 ) & "' text-anchor='middle' font-size='11' fill='#64748b'>C</text>
+			        </svg>
+			    </div>"
+		lineageTag: 12207cc0-1de6-4c06-b1e3-fb9ae777dc83
+
+	measure 'HTML Preco Nota' = ```
+			
+			VAR _W = 620
+			VAR _H = 230
+			VAR _l = 46
+			VAR _r = 12
+			VAR _t = 12
+			VAR _b = 30
+			VAR _c =
+			    FILTER (
+			        ADDCOLUMNS (
+			            VALUES ( dim_produto[categoria] ),
+			            "@v", [Receita],
+			            "@p", [Pedidos],
+			            "@pr", [Preço Médio Item],
+			            "@n", [Nota Média]
+			        ),
+			        [@p] >= 30 && [@pr] > 0
+			    )
+			VAR _max = MAXX ( _c, [@v] )
+			VAR _lxMin = LOG10 ( MINX ( _c, [@pr] ) ) - 0.05
+			VAR _lxMax = LOG10 ( MAXX ( _c, [@pr] ) ) + 0.05
+			VAR _yMin = MINX ( _c, [@n] ) - 0.05
+			VAR _yMax = MAXX ( _c, [@n] ) + 0.05
+			VAR _top5 = TOPN ( 5, _c, [@v], DESC )
+			VAR _bot2 = TOPN ( 2, _c, [@n], ASC )
+			VAR _bolhas =
+			    CONCATENATEX (
+			        _c,
+			        VAR _x = _l + DIVIDE ( LOG10 ( [@pr] ) - _lxMin, _lxMax - _lxMin ) * ( _W - _l - _r )
+			        VAR _y = _H - _b - DIVIDE ( [@n] - _yMin, _yMax - _yMin ) * ( _H - _t - _b )
+			        VAR _rr = 4 + 15 * SQRT ( DIVIDE ( [@v], _max ) )
+			        VAR _cor = IF ( [@n] >= 4.1, "#a855f7", IF ( [@n] >= 3.9, "#22d3ee", "#f472b6" ) )
+			        VAR _cat = dim_produto[categoria]
+			        VAR _rotulo = COUNTROWS ( FILTER ( _top5, dim_produto[categoria] = _cat ) ) + COUNTROWS ( FILTER ( _bot2, dim_produto[categoria] = _cat ) ) > 0
+			        RETURN
+			            "<g><title>" & SUBSTITUTE ( _cat, "_", " " ) & " | preço médio " & FORMAT ( [@pr], "R$ #,##0" ) & " | nota " & FORMAT ( [@n], "0.00" ) & " | receita R$ " & FORMAT ( [@v], "#,##0" ) & "</title>"
+			                & "<circle cx='" & FORMAT ( _x, "0" ) & "' cy='" & FORMAT ( _y, "0" ) & "' r='" & FORMAT ( _rr, "0" ) & "' fill='" & _cor & "' fill-opacity='0.45' stroke='" & _cor & "'/>"
+			                & IF ( _rotulo, "<text x='" & FORMAT ( _x, "0" ) & "' y='" & FORMAT ( _y - _rr - 3, "0" ) & "' text-anchor='middle' font-size='11' fill='#e2e8f0' stroke='#0b1023' stroke-width='3' paint-order='stroke'>" & LEFT ( SUBSTITUTE ( _cat, "_", " " ), 20 ) & "</text>", "" )
+			            & "</g>",
+			        "", [@v], DESC
+			    )
+			VAR _ticks = FILTER ( { 10, 20, 50, 100, 200, 500, 1000, 2000 }, LOG10 ( [Value] ) >= _lxMin && LOG10 ( [Value] ) <= _lxMax )
+			VAR _eixoX =
+			    CONCATENATEX (
+			        _ticks,
+			        "<text x='" & FORMAT ( _l + DIVIDE ( LOG10 ( [Value] ) - _lxMin, _lxMax - _lxMin ) * ( _W - _l - _r ), "0" ) & "' y='" & ( _H - 14 ) & "' text-anchor='middle' font-size='10' fill='#64748b'>R$ " & [Value] & "</text>",
+			        ""
+			    )
+			VAR _eixoY =
+			    CONCATENATEX (
+			        GENERATESERIES ( 0, 3, 1 ),
+			        VAR _vy = _yMin + [Value] * ( _yMax - _yMin ) / 3
+			        VAR _yy = FORMAT ( _H - _b - [Value] * ( _H - _t - _b ) / 3, "0" )
+			        RETURN
+			            "<line x1='" & _l & "' x2='" & ( _W - _r ) & "' y1='" & _yy & "' y2='" & _yy & "' stroke='#1e293b'/>"
+			                & "<text x='" & ( _l - 4 ) & "' y='" & _yy & "' text-anchor='end' dominant-baseline='middle' font-size='10' fill='#64748b'>" & FORMAT ( _vy, "0.00" ) & "</text>",
+			        ""
+			    )
+			RETURN
+			    "<div class='card' style='grid-area:b'>
+			        <div class='ctitle' style='margin-bottom:4px'>Preço médio × Nota</div>
+			        <div style='display:flex;flex-wrap:wrap;gap:10px;font-size:10px;color:#cbd5e1;margin-bottom:0'>
+			            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#a855f7;margin-right:4px;vertical-align:middle'></span>nota ≥ 4,1</div>
+			            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#22d3ee;margin-right:4px;vertical-align:middle'></span>3,9 a 4,1</div>
+			            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#f472b6;margin-right:4px;vertical-align:middle'></span>abaixo de 3,9</div>
+			            <div style='color:#94a3b8'>◯ tamanho = receita</div>
+			        </div>
+			        <svg viewBox='0 0 " & _W & " " & _H & "' style='flex:1;min-height:0;width:100%'>"
+			            & _eixoY & _bolhas & _eixoX &
+			            "<text x='" & ( _W - _r ) & "' y='" & ( _H - 1 ) & "' text-anchor='end' font-size='9' fill='#94a3b8'>preço médio do item (escala log) →</text>
+			            <text x='9' y='" & FORMAT ( ( _H - _b + _t ) / 2, "0" ) & "' text-anchor='middle' font-size='9' fill='#94a3b8' transform='rotate(-90 9 " & FORMAT ( ( _H - _b + _t ) / 2, "0" ) & ")'>nota média →</text>
+			        </svg>
+			    </div>"
+			
+			```
+		lineageTag: 4f3e2ea7-a6c3-4015-a3fb-1017e0c70fb4
+
+	measure 'HTML Frete Peso' =
+			
+			VAR _faixas =
+			    DATATABLE (
+			        "Faixa", STRING, "Min", INTEGER, "Max", INTEGER, "Ord", INTEGER,
+			        {
+			            { "até 500 g", 0, 500, 1 },
+			            { "0,5–2 kg", 501, 2000, 2 },
+			            { "2–5 kg", 2001, 5000, 3 },
+			            { "5 kg +", 5001, 999999, 4 }
+			        }
+			    )
+			VAR _t =
+			    ADDCOLUMNS (
+			        _faixas,
+			        "@f",
+			            VAR _mn = [Min]
+			            VAR _mx = [Max]
+			            RETURN CALCULATE ( AVERAGE ( fato_vendas[frete] ), KEEPFILTERS ( dim_produto[peso_g] >= _mn && dim_produto[peso_g] <= _mx ) ),
+			        "@pr",
+			            VAR _mn = [Min]
+			            VAR _mx = [Max]
+			            RETURN CALCULATE ( AVERAGE ( fato_vendas[preco] ), KEEPFILTERS ( dim_produto[peso_g] >= _mn && dim_produto[peso_g] <= _mx ) )
+			    )
+			VAR _fmax = MAXX ( _t, [@f] )
+			VAR _linhas =
+			    CONCATENATEX (
+			        _t,
+			        VAR _pct = DIVIDE ( [@f], [@pr] )
+			        VAR _cls = IF ( _pct >= 0.19, "cr", IF ( _pct >= 0.16, "cy", "cg" ) )
+			        RETURN
+			            "<div class='nrow' style='margin:2px 0'>
+			                <div style='width:66px'>" & [Faixa] & "</div>
+			                <div class='bar-bg' style='flex:1;height:12px'><div class='bar' style='height:12px;width:" & FORMAT ( DIVIDE ( [@f], _fmax ) * 100, "0" ) & "%'></div></div>
+			                <div style='width:62px;text-align:right;color:#ffffff;font-weight:600'>" & FORMAT ( [@f], "R$ #,##0.0" ) & "</div>
+			                <span class='chip " & _cls & "' style='width:40px;text-align:center'>" & FORMAT ( _pct, "0%" ) & "</span>
+			            </div>",
+			        "", [Ord], ASC
+			    )
+			RETURN
+			    "<div class='card' style='grid-area:w'>
+			        <div class='ctitle'>Frete por faixa de peso</div>
+			        <div style='display:flex;justify-content:flex-end;gap:30px;font-size:10px;color:#94a3b8;margin-bottom:2px'><span>frete médio</span><span>% do preço</span></div>
+			        <div style='flex:1;display:flex;flex-direction:column;justify-content:space-around'>" & _linhas & "</div>
+			    </div>"
+		lineageTag: 1a187a6d-6824-4873-a53c-3253c0d36cdb
+
+	measure 'HTML Piores Notas' = ```
+			
+			VAR _c =
+			    FILTER (
+			        ADDCOLUMNS ( VALUES ( dim_produto[categoria] ), "@p", [Pedidos], "@n", [Nota Média] ),
+			        [@p] >= 100 && NOT ISBLANK ( [@n] )
+			    )
+			VAR _bot = TOPN ( 5, _c, [@n], ASC )
+			VAR _rk = ADDCOLUMNS ( _bot, "@k", RANKX ( _bot, [@n], , ASC ) )
+			VAR _linhas =
+			    CONCATENATEX (
+			        _rk,
+			        "<div class='nrow'>
+			            <div style='width:20px;color:#64748b'>" & [@k] & "</div>
+			            <div style='flex:1;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>" & SUBSTITUTE ( dim_produto[categoria], "_", " " ) & "</div>
+			            <div style='width:70px;text-align:right;color:#94a3b8;font-size:11px'>" & FORMAT ( [@p], "#,##0" ) & " ped.</div>
+			            <span class='chip cr' style='width:56px;text-align:center'>" & FORMAT ( [@n], "0.00" ) & " ⭐</span>
+			        </div>",
+			        "", [@n], ASC
+			    )
+			RETURN
+			    "<div class='card' style='grid-area:n'>
+			        <div style='display:flex;justify-content:space-between;align-items:baseline'>
+			            <div class='ctitle'>Piores avaliações</div>
+			            <div class='sub'>mín. 100 pedidos</div>
+			        </div>
+			        <div style='flex:1;display:flex;flex-direction:column;justify-content:space-around'>" & _linhas & "</div>
+			        <div class='sub'>Média geral: <b style='color:#38bdf8'>" & FORMAT ( [Nota Média], "0.00" ) & " ⭐</b></div>
+			    </div>"
+			
+			```
+		lineageTag: 6e8cae1e-3f09-4315-8651-92868dc3e638
+
+	measure 'HTML Fotos' =
+			
+			VAR _W = 620
+			VAR _H = 210
+			VAR _faixas =
+			    DATATABLE (
+			        "Faixa", STRING, "Min", INTEGER, "Max", INTEGER, "Ord", INTEGER,
+			        { { "1", 1, 1, 1 }, { "2", 2, 2, 2 }, { "3", 3, 3, 3 }, { "4–5", 4, 5, 4 }, { "6+", 6, 99, 5 } }
+			    )
+			VAR _tot = CALCULATE ( [Receita], NOT ISBLANK ( dim_produto[qtd_fotos] ) )
+			VAR _t =
+			    ADDCOLUMNS (
+			        _faixas,
+			        "@sh",
+			            VAR _mn = [Min]
+			            VAR _mx = [Max]
+			            RETURN DIVIDE ( CALCULATE ( [Receita], KEEPFILTERS ( dim_produto[qtd_fotos] >= _mn && dim_produto[qtd_fotos] <= _mx ) ), _tot ),
+			        "@n",
+			            VAR _mn = [Min]
+			            VAR _mx = [Max]
+			            RETURN CALCULATE ( [Nota Média], KEEPFILTERS ( dim_produto[qtd_fotos] >= _mn && dim_produto[qtd_fotos] <= _mx ) )
+			    )
+			VAR _shMax = MAXX ( _t, [@sh] )
+			VAR _nMin = MINX ( _t, [@n] ) - 0.02
+			VAR _nMax = MAXX ( _t, [@n] ) + 0.02
+			VAR _gap = ( _W - 40 ) / 5
+			VAR _xy =
+			    ADDCOLUMNS (
+			        _t,
+			        "@x", 30 + ( [Ord] - 1 ) * _gap + _gap / 2,
+			        "@h", DIVIDE ( [@sh], _shMax ) * ( _H - 75 ),
+			        "@yn", _H - 45 - DIVIDE ( [@n] - _nMin, _nMax - _nMin ) * ( _H - 95 )
+			    )
+			VAR _barras =
+			    CONCATENATEX (
+			        _xy,
+			        "<g><title>" & [Faixa] & " foto(s): " & FORMAT ( [@sh], "0.0%" ) & " da receita · nota " & FORMAT ( [@n], "0.00" ) & "</title>"
+			            & "<rect x='" & FORMAT ( [@x] - 32, "0" ) & "' y='" & FORMAT ( _H - 30 - [@h], "0" ) & "' width='64' height='" & FORMAT ( [@h], "0" ) & "' rx='5' fill='url(#gF)'/></g>"
+			            & "<text x='" & FORMAT ( [@x], "0" ) & "' y='" & FORMAT ( IF ( [@h] >= 18, _H - 30 - [@h] + 13, _H - 34 - [@h] ), "0" ) & "' text-anchor='middle' font-size='12' font-weight='600' fill='#ffffff'>" & FORMAT ( [@sh], "0%" ) & "</text>"
+			            & "<text x='" & FORMAT ( [@x], "0" ) & "' y='" & ( _H - 14 ) & "' text-anchor='middle' font-size='12' fill='#94a3b8'>" & [Faixa] & "</text>",
+			        "", [Ord], ASC
+			    )
+			VAR _linha = CONCATENATEX ( _xy, FORMAT ( [@x], "0" ) & "," & FORMAT ( [@yn], "0" ), " ", [Ord], ASC )
+			VAR _pontos =
+			    CONCATENATEX (
+			        _xy,
+			        "<circle cx='" & FORMAT ( [@x], "0" ) & "' cy='" & FORMAT ( [@yn], "0" ) & "' r='4.5' fill='#0b1023' stroke='#f472b6' stroke-width='2.5'/>"
+			            & "<text x='" & FORMAT ( [@x], "0" ) & "' y='" & FORMAT ( [@yn] - 8, "0" ) & "' text-anchor='middle' font-size='12' font-weight='700' fill='#f9a8d4' stroke='#0b1023' stroke-width='3' paint-order='stroke'>" & FORMAT ( [@n], "0.00" ) & "</text>",
+			        "", [Ord], ASC
+			    )
+			RETURN
+			    "<div class='card' style='grid-area:x'>
+			        <div class='ctitle' style='margin-bottom:4px'>Fotos no anúncio</div>
+			        <div style='display:flex;gap:14px;font-size:11px;color:#cbd5e1;margin-bottom:2px'>
+			            <div><span style='display:inline-block;width:10px;height:10px;border-radius:2px;background:linear-gradient(#a855f7,#3b82f6);margin-right:5px;vertical-align:middle'></span>Barras: % da receita</div>
+			            <div><span style='display:inline-block;width:14px;height:2px;background:#f472b6;margin-right:5px;vertical-align:middle'></span>Linha: nota média <span style='color:#64748b'>(" & FORMAT ( _nMin + 0.02, "0.00" ) & " a " & FORMAT ( _nMax - 0.02, "0.00" ) & ")</span></div>
+			        </div>
+			        <svg viewBox='0 0 " & _W & " " & _H & "' style='flex:1;min-height:0;width:100%'>
+			            <defs>
+			                <linearGradient id='gF' x1='0' y1='0' x2='0' y2='1'>
+			                    <stop offset='0%' stop-color='#a855f7'/>
+			                    <stop offset='100%' stop-color='#3b82f6' stop-opacity='0.4'/>
+			                </linearGradient>
+			            </defs>"
+			            & _barras &
+			            "<polyline points='" & _linha & "' fill='none' stroke='#f472b6' stroke-width='2.5'/>"
+			            & _pontos &
+			            "<text x='" & ( _W / 2 ) & "' y='" & ( _H - 1 ) & "' text-anchor='middle' font-size='10' fill='#64748b'>quantidade de fotos</text>
+			        </svg>
+			    </div>"
+		lineageTag: dc71cbeb-a1f1-49b0-b62d-2cce05af6266
+
+	measure 'HTML Produtos' =
+			
+			[HTML Estilo Produtos]
+			    & "<div class='dash'>"
+			    & [HTML Cab Produtos]
+			    & [HTML Ranking Categorias]
+			    & [HTML Curva ABC]
+			    & [HTML Preco Nota]
+			    & [HTML Frete Peso]
+			    & [HTML Piores Notas]
+			    & [HTML Fotos]
+			    & [HTML Destaques Produtos]
+			    & "</div>"
+		lineageTag: f21c9f12-57d8-489b-89f9-276327f4c770
+
+	measure 'HTML Destaques Produtos' =
+			
+			VAR _o = [Ref Ano Mes]
+			VAR _ano = INT ( _o / 10000 )
+			VAR _mes = INT ( MOD ( _o, 10000 ) / 100 )
+			VAR _c =
+			    FILTER (
+			        ADDCOLUMNS (
+			            VALUES ( dim_produto[categoria] ),
+			            "@v", [Receita],
+			            "@p", [Pedidos],
+			            "@a", [% Entregas com Atraso],
+			            "@ga", CALCULATE ( [Receita], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) ),
+			            "@gb", CALCULATE ( [Receita], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) ),
+			            "@pb", CALCULATE ( [Pedidos], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+			        ),
+			        NOT ISBLANK ( [@v] )
+			    )
+			VAR _tot = SUMX ( _c, [@v] )
+			-- maior crescimento
+			VAR _cres = TOPN ( 1, FILTER ( ADDCOLUMNS ( FILTER ( _c, [@p] >= 100 && [@pb] >= 100 ), "@g", DIVIDE ( [@ga] - [@gb], [@gb] ) ), NOT ISBLANK ( [@g] ) ), [@g], DESC )
+			VAR _cresNome = CONCATENATEX ( _cres, dim_produto[categoria] )
+			VAR _cresVal = MAXX ( _cres, [@g] )
+			-- maior ticket
+			VAR _tk = TOPN ( 1, ADDCOLUMNS ( FILTER ( _c, [@p] >= 30 ), "@t", DIVIDE ( [@v], [@p] ) ), [@t], DESC )
+			VAR _tkNome = CONCATENATEX ( _tk, dim_produto[categoria] )
+			VAR _tkVal = MAXX ( _tk, [@t] )
+			-- mais atraso
+			VAR _at = TOPN ( 1, FILTER ( _c, [@p] >= 100 ), [@a], DESC )
+			VAR _atNome = CONCATENATEX ( _at, dim_produto[categoria] )
+			VAR _atVal = MAXX ( _at, [@a] )
+			-- concentração top 5
+			VAR _top5 = DIVIDE ( SUMX ( TOPN ( 5, _c, [@v], DESC ), [@v] ), _tot )
+			RETURN
+			    "<div class='kgrid'>
+			        <div class='card mini'><div class='lbl'>📈 Maior crescimento</div>
+			            <div class='mv' style='color:#34d399'>" & IF ( ISBLANK ( _cresVal ), "—", FORMAT ( _cresVal, "+0%;-0%" ) ) & "</div>
+			            <div class='nm' title='" & SUBSTITUTE ( _cresNome, "_", " " ) & "'>" & SUBSTITUTE ( _cresNome, "_", " " ) & "</div>
+			            <div class='sub2'>vs jan–" & FORMAT ( DATE ( _ano, _mes, 1 ), "mmm" ) & "/" & ( _ano - 1 ) & "</div></div>
+			        <div class='card mini'><div class='lbl'>💎 Maior ticket</div>
+			            <div class='mv'>" & FORMAT ( _tkVal, "R$ #,##0" ) & "</div>
+			            <div class='nm' title='" & SUBSTITUTE ( _tkNome, "_", " " ) & "'>" & SUBSTITUTE ( _tkNome, "_", " " ) & "</div>
+			            <div class='sub2'>por pedido</div></div>
+			        <div class='card mini'><div class='lbl'>⏱️ Mais atraso</div>
+			            <div class='mv' style='color:#f87171'>" & FORMAT ( _atVal, "0.0%" ) & "</div>
+			            <div class='nm' title='" & SUBSTITUTE ( _atNome, "_", " " ) & "'>" & SUBSTITUTE ( _atNome, "_", " " ) & "</div>
+			            <div class='sub2'>dos pedidos entregues</div></div>
+			        <div class='card mini'><div class='lbl'>🎯 Concentração</div>
+			            <div class='mv' style='color:#c4b5fd'>" & FORMAT ( _top5, "0%" ) & "</div>
+			            <div class='nm'>Top 5 categorias</div>
+			            <div class='sub2'>da receita total</div></div>
+			    </div>"
+		lineageTag: 48fc30cb-6879-4048-bba0-b03c0958e243
+
+	partition _Medidas_Produto = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
+				in
+				    #"Colunas Removidas"
+
+	annotation PBI_ResultType = Table
+

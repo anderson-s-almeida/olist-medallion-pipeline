@@ -1,0 +1,16 @@
+relationship AutoDetected_2e46fcc6-869c-4d80-bc20-295525d489fa
+	fromColumn: fato_vendas.customer_id
+	toColumn: dim_cliente.customer_id
+
+relationship AutoDetected_1df4c429-98e7-4dff-a605-7e709e3e6c90
+	fromColumn: fato_vendas.product_id
+	toColumn: dim_produto.product_id
+
+relationship AutoDetected_24015ec1-04a9-433b-a597-d90175e24d23
+	fromColumn: fato_vendas.seller_id
+	toColumn: dim_vendedor.seller_id
+
+relationship 98abbcf2-11ee-3496-47b7-e03ded368f4f
+	fromColumn: fato_vendas.sk_data_compra
+	toColumn: dim_data.sk_data
+

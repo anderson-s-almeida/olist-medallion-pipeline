@@ -1,0 +1,48 @@
+table dim_vendedor
+	lineageTag: 717bf7b8-1a8c-4e7e-a6d3-8cbdc06fdb39
+
+	column seller_id
+		dataType: string
+		lineageTag: 94dc2858-7b63-4fd7-bf2e-f0c4d3adde38
+		summarizeBy: none
+		sourceColumn: seller_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column cidade
+		dataType: string
+		lineageTag: adcbe461-580e-4dda-9f73-cc22d643ddf0
+		summarizeBy: none
+		sourceColumn: cidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column uf
+		dataType: string
+		lineageTag: 2584bd2a-4b40-40b3-9988-06d75db8c490
+		summarizeBy: none
+		sourceColumn: uf
+
+		annotation SummarizationSetBy = Automatic
+
+	column cep_prefixo
+		dataType: string
+		lineageTag: 9ced1ea3-856b-4cd2-b564-4471aeccf763
+		summarizeBy: none
+		sourceColumn: cep_prefixo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_vendedor = m
+		mode: import
+		source =
+				let
+				    Fonte = DatabricksMultiCloud.Catalogs("dbc-eb71337e-4cba.cloud.databricks.com", "/sql/1.0/warehouses/2acace36d690c6ad", [Catalog="workspace", Database="olist_gold", QueryTags=null, EnableAutomaticProxyDiscovery=null, Implementation="2.0", Protocol=null]),
+				    dim_vendedor_olist_gold_workspace_Table = Fonte{[Item="dim_vendedor",Schema="olist_gold",Catalog="workspace",Kind="Table"]}[Data]
+				in
+				    dim_vendedor_olist_gold_workspace_Table
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+

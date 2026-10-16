@@ -1,0 +1,107 @@
+table _Medidas_Executiva
+	lineageTag: 6f9e7846-c719-4b5f-b4e6-0171589e5e96
+
+	measure Receita = SUM ( fato_vendas[valor_total] )
+		lineageTag: 2288ca36-c770-4333-baea-22fea4cd4de0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Pedidos = DISTINCTCOUNT ( fato_vendas[order_id] )
+		formatString: 0
+		lineageTag: e9924b12-b9ce-4216-aab9-99f6a7542d7e
+
+	measure 'Ticket Médio' = DIVIDE ( [Receita], [Pedidos] )
+		lineageTag: f0466180-4cc0-4f07-adba-60196d912d3b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Receita Ano Anterior' =
+			
+			CALCULATE ( [Receita], SAMEPERIODLASTYEAR ( dim_data[data] ) )
+		lineageTag: ef012570-f807-4d27-998b-cea7a47d54eb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Crescimento YoY %' =
+			
+			DIVIDE ( [Receita] - [Receita Ano Anterior], [Receita Ano Anterior] )
+		lineageTag: 8081be64-a9a1-4d6b-9463-7e6a14d02914
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Entregas com Atraso' =
+			
+			DIVIDE (
+			    CALCULATE ( [Pedidos], fato_vendas[entregue_com_atraso] = TRUE () ),
+			    CALCULATE ( [Pedidos], NOT ISBLANK ( fato_vendas[entregue_com_atraso] ) )
+			)
+		lineageTag: 45c79b15-7865-48e3-bb3b-bbd3c557c059
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Nota Média' = AVERAGE ( fato_vendas[nota_avaliacao] )
+		lineageTag: f2168c7d-ef42-43d3-8fac-3ff18fe72ba9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Entregas no Prazo' = 1 - [% Entregas com Atraso]
+		lineageTag: 6cd1c15f-770b-46f4-950d-a863ecb78041
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Dias Médios Entrega' = AVERAGE ( fato_vendas[dias_entrega] )
+		lineageTag: 59cd7df4-d415-4fae-b428-99a6eefe2d11
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Frete Total' = SUM ( fato_vendas[frete] )
+		lineageTag: df37a625-4a71-4322-bd2a-e70bee51cb43
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure '% Frete Receita' = DIVIDE ( [Frete Total], [Receita] )
+		lineageTag: 976b45d6-c56f-40b5-8571-cb51aca4ca5a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Frete por Pedido' = DIVIDE ( [Frete Total], [Pedidos] )
+		lineageTag: ab0d2653-4c7a-439c-bc96-e0cefff5356d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Clientes Únicos' = CALCULATE ( DISTINCTCOUNT ( dim_cliente[customer_unique_id] ), fato_vendas )
+		formatString: 0
+		lineageTag: 0ca7e566-025d-4827-85ea-f433dac4d729
+
+	measure 'Pedidos por Cliente' = DIVIDE ( [Pedidos], [Clientes Únicos] )
+		lineageTag: 3183e03c-cc18-4b64-bfa6-6ce2bde5d757
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Taxa de Recompra' =
+			
+			VAR _clientes =
+			    ADDCOLUMNS (
+			        CALCULATETABLE ( VALUES ( dim_cliente[customer_unique_id] ), fato_vendas ),
+			        "@ped", [Pedidos]
+			    )
+			RETURN
+			    DIVIDE ( COUNTROWS ( FILTER ( _clientes, [@ped] > 1 ) ), COUNTROWS ( _clientes ) )
+		lineageTag: f6c5f130-748f-44fe-999e-b375c2cdca8e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition _Medidas_Executiva = m
+		mode: import
+		source =
+				let
+				    Fonte = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Coluna 1" = _t]),
+				    #"Tipo Alterado" = Table.TransformColumnTypes(Fonte,{{"Coluna 1", type text}}),
+				    #"Colunas Removidas" = Table.RemoveColumns(#"Tipo Alterado",{"Coluna 1"})
+				in
+				    #"Colunas Removidas"
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

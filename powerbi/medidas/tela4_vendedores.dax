@@ -1,0 +1,519 @@
+// =====================================================================
+// Olist | Tela 4 — Vendedores (visual "HTML Content")
+// Criar todas as medidas na tabela _Medidas, na ordem abaixo.
+// A medida final é [HTML Vendedores] — é ela que vai no visual da página 4.
+//
+// Usa medidas já existentes: [Receita], [Pedidos], [Nota Média],
+// [% Entregas com Atraso] e [Ref Ano Mes] (tela 2).
+// =====================================================================
+
+
+// ---------------------------------------------------------------------
+// 1) Medidas de apoio (criar cada uma separadamente)
+// ---------------------------------------------------------------------
+
+Vendedores Ativos = DISTINCTCOUNT ( fato_vendas[seller_id] )
+
+Receita por Vendedor = DIVIDE ( [Receita], [Vendedores Ativos] )
+
+Nota Media por Vendedor =
+AVERAGEX ( VALUES ( fato_vendas[seller_id] ), [Nota Média] )
+
+% Receita Top 10 Vendedores =
+VAR _s = FILTER ( ADDCOLUMNS ( VALUES ( fato_vendas[seller_id] ), "@v", [Receita] ), NOT ISBLANK ( [@v] ) )
+VAR _n = ROUNDUP ( COUNTROWS ( _s ) * 0.1, 0 )
+RETURN
+    DIVIDE ( SUMX ( TOPN ( _n, _s, [@v], DESC ), [@v] ), SUMX ( _s, [@v] ) )
+
+
+// ---------------------------------------------------------------------
+// 2) HTML Estilo Vendedores  (CSS da página 4)
+// ---------------------------------------------------------------------
+
+HTML Estilo Vendedores =
+"<style>
+.dash{font-family:'Segoe UI',sans-serif;color:#e2e8f0;padding:16px 18px;box-sizing:border-box;height:100vh;
+ background:radial-gradient(circle at 15% 0%,#1e1b4b 0%,transparent 45%),radial-gradient(circle at 95% 100%,#0c3a5e 0%,transparent 45%),#070b1a;
+ display:grid;gap:16px;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:78px 46px 1fr 1fr 1fr;
+ grid-template-areas:'h h h h h h h h h h h h' 'f f f f f f f f f f f f' 'r r r r r b b b b b b b' 'r r r r r p p p p s s s' 'k k k k k x x x x s s s';}
+.card{background:linear-gradient(160deg,rgba(30,41,82,.85),rgba(12,17,40,.92));border:1px solid rgba(96,165,250,.25);border-radius:16px;
+ box-shadow:0 0 18px rgba(59,130,246,.18),inset 0 0 14px rgba(139,92,246,.08);padding:14px 18px;box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;min-height:0;}
+.header{grid-area:h;flex-direction:row !important;justify-content:space-between;align-items:center;gap:12px;padding:8px 18px !important;}
+.title{font-size:20px;font-weight:700;color:#ffffff;}
+.sub{font-size:12px;color:#94a3b8;margin-top:2px;}
+.pills{display:flex;gap:10px;flex-wrap:wrap;}
+.pill{background:rgba(15,23,42,.85);border:1px solid rgba(139,92,246,.35);border-radius:12px;padding:4px 16px;text-align:center;box-shadow:0 0 10px rgba(139,92,246,.15);}
+.pill .lbl{font-size:10px;}
+.pill .v{font-size:17px;font-weight:700;color:#ffffff;}
+.lbl{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;}
+.ctitle{font-size:15px;font-weight:600;color:#ffffff;margin-bottom:8px;}
+.dest{display:flex;gap:22px;align-items:center;flex:1;}
+.icon{font-size:70px;width:130px;height:130px;border-radius:22px;display:flex;align-items:center;justify-content:center;
+ background:rgba(15,23,42,.85);border:1px solid rgba(96,165,250,.35);box-shadow:0 0 22px rgba(59,130,246,.35);}
+.kpi{display:flex;align-items:center;gap:10px;margin:7px 0;}
+.kdot{width:26px;height:26px;border-radius:50%;background:rgba(59,130,246,.18);border:1px solid rgba(96,165,250,.35);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.kv{font-size:19px;font-weight:700;color:#38bdf8;}
+.bar-row{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;color:#cbd5e1;}
+.bar-name{width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-bg{flex:1;height:12px;background:#1e293b;border-radius:5px;}
+.bar{height:12px;border-radius:6px;background:linear-gradient(90deg,#3b82f6,#a855f7);box-shadow:0 0 8px rgba(139,92,246,.6);}
+.bar-v{width:90px;text-align:right;font-weight:600;color:#ffffff;}
+.minis{grid-area:s;display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.mini{text-align:center;padding:12px 6px;display:flex;flex-direction:column;justify-content:center;}
+.mini .mv{font-size:28px;font-weight:700;color:#38bdf8;margin-top:4px;}
+.mini .mi{font-size:20px;margin-top:2px;}
+.leg{display:flex;justify-content:center;gap:16px;font-size:12px;color:#94a3b8;margin-top:6px;}
+.leg span{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.kp{display:flex;align-items:center;gap:10px;text-align:left;padding:6px 14px !important;}
+.kp .v{font-size:18px;}
+.up{color:#34d399;font-size:11px;font-weight:600;}
+.dn{color:#f87171;font-size:11px;font-weight:600;}
+.split{display:flex;gap:10px;flex:1;min-height:0;}
+.split>div{flex:1;display:flex;flex-direction:column;min-height:0;}
+.nrow{display:flex;align-items:center;gap:8px;font-size:12px;color:#cbd5e1;}
+.nrow .bar-bg{height:10px;}
+.nrow .bar{height:10px;}
+.mini .sub2{font-size:11px;color:#94a3b8;margin-top:2px;}
+.rank{position:absolute;right:0;bottom:4px;width:160px;background:rgba(11,16,35,.88);border:1px solid rgba(139,92,246,.35);border-radius:10px;padding:8px 10px;box-shadow:0 0 12px rgba(139,92,246,.2);}
+.rk{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;border-bottom:1px solid rgba(96,165,250,.12);}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.tbl th{font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;text-align:right;padding:6px;border-bottom:1px solid rgba(96,165,250,.25);font-weight:600;}
+.tbl th:first-child,.tbl td:first-child{text-align:left;}
+.tbl td{padding:6px;border-bottom:1px solid rgba(96,165,250,.10);text-align:right;color:#e2e8f0;white-space:nowrap;}
+.tbl tr:hover td{background:rgba(59,130,246,.08);}
+.mb{display:inline-block;height:8px;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#a855f7);vertical-align:middle;margin-right:6px;box-shadow:0 0 6px rgba(139,92,246,.5);}
+.chip{display:inline-block;padding:1px 7px;border-radius:8px;font-size:11px;font-weight:600;}
+.cg{background:rgba(52,211,153,.15);color:#34d399;}
+.cr{background:rgba(248,113,113,.15);color:#f87171;}
+.cy{background:rgba(251,191,36,.15);color:#fbbf24;}
+.kgrid{grid-area:k;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;}
+.kgrid .mini{padding:10px 8px;}
+.chips{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-top:6px;}
+.chips .pill{padding:4px 2px;text-align:center;}
+</style>"
+
+
+// ---------------------------------------------------------------------
+// 3) HTML Cab Vendedores  (título + KPIs do ano até o momento vs ano anterior)
+// ---------------------------------------------------------------------
+
+HTML Cab Vendedores =
+VAR _o = [Ref Ano Mes]
+VAR _ano = INT ( _o / 10000 )
+VAR _mes = INT ( MOD ( _o, 10000 ) / 100 )
+VAR _filtroMes = ISFILTERED ( dim_data[mes] ) || ISFILTERED ( dim_data[ano_mes] )
+VAR _atvA = CALCULATE ( [Vendedores Ativos], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _atvB = CALCULATE ( [Vendedores Ativos], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _rpvA = CALCULATE ( [Receita por Vendedor], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _rpvB = CALCULATE ( [Receita por Vendedor], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _topA = CALCULATE ( [% Receita Top 10 Vendedores], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _notA = CALCULATE ( [Nota Media por Vendedor], dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _notB = CALCULATE ( [Nota Media por Vendedor], dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+-- novos: vendedores ativos no período cuja 1ª venda (em todo o histórico) foi neste ano
+VAR _ativos = CALCULATETABLE ( VALUES ( fato_vendas[seller_id] ), dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _novos =
+    COUNTROWS (
+        FILTER (
+            _ativos,
+            CALCULATE ( MIN ( fato_vendas[sk_data_compra] ), ALL ( dim_data ) ) >= _ano * 10000 + 101
+        )
+    )
+VAR _mesTxt = FORMAT ( DATE ( _ano, _mes, 1 ), "mmm" )
+VAR _periodo = IF ( _filtroMes, _ano & " · meses selec.", _ano & " até " & _mesTxt )
+VAR _base = IF ( _filtroMes, "vs " & ( _ano - 1 ), "vs jan–" & _mesTxt & "/" & ( _ano - 1 ) )
+VAR _semBase = "<div class='lbl'>sem base de comparação</div>"
+VAR _vAtv = DIVIDE ( _atvA - _atvB, _atvB )
+VAR _vRpv = DIVIDE ( _rpvA - _rpvB, _rpvB )
+VAR _dNot = _notA - _notB
+VAR _txAtv = IF ( ISBLANK ( _vAtv ), _semBase, IF ( _vAtv >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _vAtv ), "0%" ) & " " & _base & "</div>" )
+VAR _txRpv = IF ( ISBLANK ( _vRpv ), _semBase, IF ( _vRpv >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _vRpv ), "0%" ) & " " & _base & "</div>" )
+VAR _txNot = IF ( ISBLANK ( _notB ), _semBase, IF ( _dNot >= 0, "<div class='up'>▲ ", "<div class='dn'>▼ " ) & FORMAT ( ABS ( _dNot ), "0.00" ) & " " & _base & "</div>" )
+VAR _ini = CALCULATE ( MIN ( dim_data[data] ), fato_vendas )
+VAR _fim = CALCULATE ( MAX ( dim_data[data] ), fato_vendas )
+RETURN
+    "<div class='card header'>
+        <div>
+            <div class='title'>Olist | Vendedores</div>
+            <div class='sub'>E-commerce brasileiro · " & FORMAT ( _ini, "mm/yyyy" ) & " a " & FORMAT ( _fim, "mm/yyyy" ) & "</div>
+            <div class='sub' style='color:#a78bfa'>Indicadores: " & _periodo & "</div>
+        </div>
+        <div class='pills'>
+            <div class='pill kp'><div><div class='lbl'>Vendedores ativos</div><div class='v'>" & FORMAT ( _atvA, "#,##0" ) & "</div>" & _txAtv & "</div></div>
+            <div class='pill kp'><div><div class='lbl'>Novos vendedores</div><div class='v'>" & FORMAT ( _novos, "#,##0" ) & "</div><div class='lbl'>" & FORMAT ( DIVIDE ( _novos, _atvA ), "0%" ) & " dos ativos</div></div></div>
+            <div class='pill kp'><div><div class='lbl'>Receita por vendedor</div><div class='v'>" & FORMAT ( _rpvA, "R$ #,##0" ) & "</div>" & _txRpv & "</div></div>
+            <div class='pill kp'><div><div class='lbl'>Top 10% vendedores</div><div class='v'>" & FORMAT ( _topA, "0%" ) & "</div><div class='lbl'>da receita</div></div></div>
+            <div class='pill kp'><div><div class='lbl'>Nota média vendedor</div><div class='v'>" & FORMAT ( _notA, "0.00" ) & "</div>" & _txNot & "</div></div>
+        </div>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 4) HTML Ranking Vendedores  (top 13 por receita)
+// ---------------------------------------------------------------------
+
+HTML Ranking Vendedores =
+VAR _todos = FILTER ( ADDCOLUMNS ( VALUES ( dim_vendedor[seller_id] ), "@v", [Receita] ), NOT ISBLANK ( [@v] ) )
+VAR _qtd = COUNTROWS ( _todos )
+VAR _top =
+    ADDCOLUMNS (
+        TOPN ( 13, _todos, [@v], DESC ),
+        "@uf", CALCULATE ( MAX ( dim_vendedor[uf] ) ),
+        "@p", [Pedidos],
+        "@n", [Nota Média],
+        "@a", [% Entregas com Atraso]
+    )
+VAR _rk = ADDCOLUMNS ( _top, "@k", RANKX ( _top, [@v], , DESC ) )
+VAR _max = MAXX ( _rk, [@v] )
+VAR _linhas =
+    CONCATENATEX (
+        _rk,
+        VAR _ac = IF ( [@a] < 0.07, "cg", IF ( [@a] < 0.09, "cy", "cr" ) )
+        RETURN
+            "<tr>
+                <td><span style='color:#64748b'>" & FORMAT ( [@k], "00" ) & "</span>&nbsp; <span style='font-family:Consolas,monospace;color:#c4b5fd' title='" & dim_vendedor[seller_id] & "'>" & LEFT ( dim_vendedor[seller_id], 8 ) & "…</span></td>
+                <td>" & [@uf] & "</td>
+                <td><span class='mb' style='width:" & FORMAT ( DIVIDE ( [@v], _max ) * 55, "0" ) & "px'></span>R$ " & FORMAT ( [@v] / 1000, "#,##0" ) & " mil</td>
+                <td>" & FORMAT ( [@p], "#,##0" ) & "</td>
+                <td>" & FORMAT ( DIVIDE ( [@v], [@p] ), "R$ #,##0" ) & "</td>
+                <td" & IF ( [@n] < 3.8, " style='color:#f87171'", "" ) & ">" & FORMAT ( [@n], "0.00" ) & " ⭐</td>
+                <td><span class='chip " & _ac & "'>" & FORMAT ( [@a], "0.0%" ) & "</span></td>
+            </tr>",
+        "", [@k], ASC
+    )
+RETURN
+    "<div class='card' style='grid-area:r'>
+        <div style='display:flex;justify-content:space-between;align-items:baseline'>
+            <div class='ctitle'>Ranking de vendedores</div>
+            <div class='sub'>top " & MIN ( 13, _qtd ) & " de " & FORMAT ( _qtd, "#,##0" ) & " · por receita</div>
+        </div>
+        <div style='flex:1;overflow:hidden'>
+            <table class='tbl'>
+                <tr><th>Vendedor</th><th>UF</th><th>Receita</th><th>Pedidos</th><th>Ticket</th><th>Nota</th><th>% Atraso</th></tr>" & _linhas & "
+            </table>
+        </div>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 5) HTML Nota Volume  (bolhas: pedidos × nota por vendedor)
+//    Só vendedores com pelo menos 10 pedidos. Zona de risco: 50+ pedidos e nota < 3,8.
+// ---------------------------------------------------------------------
+
+HTML Nota Volume =
+VAR _W = 1000
+VAR _H = 210
+VAR _l = 40
+VAR _r = 12
+VAR _t = 10
+VAR _b = 28
+VAR _s =
+    FILTER (
+        ADDCOLUMNS ( VALUES ( fato_vendas[seller_id] ), "@p", [Pedidos], "@n", [Nota Média], "@v", [Receita] ),
+        [@p] >= 10 && NOT ISBLANK ( [@n] )
+    )
+VAR _vmax = MAXX ( _s, [@v] )
+VAR _lxMin = 1
+VAR _lxMax = LOG10 ( MAX ( MAXX ( _s, [@p] ), 100 ) ) + 0.05
+VAR _yMin = MAX ( FLOOR ( MINX ( _s, [@n] ), 0.5 ), 1 )
+VAR _yMax = 5
+VAR _px = _W - _l - _r
+VAR _py = _H - _t - _b
+VAR _xr = ROUND ( _l + DIVIDE ( LOG10 ( 50 ) - _lxMin, _lxMax - _lxMin ) * _px, 0 )
+VAR _yr = ROUND ( _H - _b - DIVIDE ( 3.8 - _yMin, _yMax - _yMin ) * _py, 0 )
+VAR _bolhas =
+    CONCATENATEX (
+        _s,
+        VAR _x = _l + DIVIDE ( LOG10 ( [@p] ) - _lxMin, _lxMax - _lxMin ) * _px
+        VAR _y = _H - _b - DIVIDE ( [@n] - _yMin, _yMax - _yMin ) * _py
+        VAR _rr = 2.5 + 11 * SQRT ( DIVIDE ( [@v], _vmax ) )
+        VAR _cor = IF ( [@n] >= 4.1, "#a855f7", IF ( [@n] >= 3.8, "#22d3ee", "#f472b6" ) )
+        RETURN
+            "<circle cx='" & FORMAT ( _x, "0" ) & "' cy='" & FORMAT ( _y, "0" ) & "' r='" & FORMAT ( _rr, "0" ) & "' fill='" & _cor & "' fill-opacity='0.45' stroke='" & _cor & "' stroke-opacity='0.8'>"
+                & "<title>" & LEFT ( fato_vendas[seller_id], 8 ) & "… | " & FORMAT ( [@p], "#,##0" ) & " pedidos | nota " & FORMAT ( [@n], "0.00" ) & " | R$ " & FORMAT ( [@v], "#,##0" ) & "</title></circle>",
+        "", [@v], DESC
+    )
+VAR _ticks = FILTER ( { 10, 20, 50, 100, 200, 500, 1000, 2000, 5000 }, LOG10 ( [Value] ) <= _lxMax )
+VAR _eixoX =
+    CONCATENATEX (
+        _ticks,
+        "<text x='" & FORMAT ( _l + DIVIDE ( LOG10 ( [Value] ) - _lxMin, _lxMax - _lxMin ) * _px, "0" ) & "' y='" & ( _H - 12 ) & "' text-anchor='middle' font-size='11' fill='#64748b'>" & [Value] & "</text>",
+        ""
+    )
+VAR _eixoY =
+    CONCATENATEX (
+        GENERATESERIES ( 0, 4, 1 ),
+        VAR _vy = _yMin + [Value] * ( _yMax - _yMin ) / 4
+        VAR _yy = FORMAT ( _H - _b - [Value] * _py / 4, "0" )
+        RETURN
+            "<line x1='" & _l & "' x2='" & ( _W - _r ) & "' y1='" & _yy & "' y2='" & _yy & "' stroke='#1e293b'/>"
+                & "<text x='" & ( _l - 5 ) & "' y='" & _yy & "' text-anchor='end' dominant-baseline='middle' font-size='11' fill='#64748b'>" & FORMAT ( _vy, "0.0" ) & "</text>",
+        ""
+    )
+VAR _risco = COUNTROWS ( FILTER ( _s, [@p] >= 50 && [@n] < 3.8 ) )
+RETURN
+    "<div class='card' style='grid-area:b'>
+        <div style='display:flex;justify-content:space-between;align-items:baseline'>
+            <div class='ctitle' style='margin-bottom:2px'>Nota × Volume de pedidos</div>
+            <div class='sub'>" & FORMAT ( COUNTROWS ( _s ), "#,##0" ) & " vendedores com 10+ pedidos</div>
+        </div>
+        <div style='display:flex;flex-wrap:wrap;gap:12px;font-size:10px;color:#cbd5e1'>
+            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#a855f7;margin-right:4px;vertical-align:middle'></span>nota ≥ 4,1</div>
+            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#22d3ee;margin-right:4px;vertical-align:middle'></span>3,8 a 4,1</div>
+            <div><span style='display:inline-block;width:9px;height:9px;border-radius:50%;background:#f472b6;margin-right:4px;vertical-align:middle'></span>abaixo de 3,8</div>
+            <div style='color:#94a3b8'>◯ tamanho = receita · cada bolha = 1 vendedor</div>
+        </div>
+        <svg viewBox='0 0 " & _W & " " & _H & "' style='flex:1;min-height:0;width:100%'>"
+            & _eixoY
+            & "<rect x='" & _xr & "' y='" & _yr & "' width='" & FORMAT ( _W - _r - _xr, "0" ) & "' height='" & FORMAT ( _H - _b - _yr, "0" ) & "' fill='#f87171' fill-opacity='0.08' stroke='#f87171' stroke-opacity='0.4' stroke-dasharray='4 4'/>"
+            & "<text x='" & ( _W - _r - 6 ) & "' y='" & ( _H - _b - 6 ) & "' text-anchor='end' font-size='11' font-weight='700' fill='#fca5a5'>zona de risco: " & _risco & " vendedores (50+ pedidos e nota &lt; 3,8)</text>"
+            & _bolhas & _eixoX &
+            "<text x='" & ( _W - _r ) & "' y='" & ( _H - 1 ) & "' text-anchor='end' font-size='10' fill='#94a3b8'>pedidos do vendedor (escala log) →</text>
+        </svg>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 6) HTML Pareto Vendedores  (concentração: receita acumulada por % de vendedores)
+//    Vendedores divididos em 50 faixas de 2%; barras = receita de cada faixa,
+//    linha = receita acumulada. Roxo = faixas até 80% da receita.
+// ---------------------------------------------------------------------
+
+HTML Pareto Vendedores =
+VAR _W = 560
+VAR _H = 200
+VAR _px = 30
+VAR _py = 14
+VAR _baseY = _H - 24
+VAR _s = FILTER ( ADDCOLUMNS ( VALUES ( fato_vendas[seller_id] ), "@v", [Receita] ), NOT ISBLANK ( [@v] ) )
+VAR _n = COUNTROWS ( _s )
+VAR _tot = SUMX ( _s, [@v] )
+VAR _pts =
+    ADDCOLUMNS (
+        GENERATESERIES ( 1, 50, 1 ),
+        "@cum",
+            VAR _k = ROUNDUP ( [Value] * _n / 50, 0 )
+            RETURN DIVIDE ( SUMX ( TOPN ( _k, _s, [@v], DESC ), [@v] ), _tot )
+    )
+VAR _pts2 =
+    ADDCOLUMNS (
+        _pts,
+        "@fx",
+            VAR _j = [Value]
+            RETURN [@cum] - COALESCE ( MAXX ( FILTER ( _pts, [Value] = _j - 1 ), [@cum] ), 0 )
+    )
+VAR _fmax = MAXX ( _pts2, [@fx] )
+VAR _j80 = MINX ( FILTER ( _pts2, [@cum] >= 0.8 ), [Value] )
+VAR _pct80 = _j80 * 0.02
+VAR _qtd80 = ROUNDUP ( _pct80 * _n, 0 )
+VAR _passo = ( _W - 2 * _px ) / 50
+VAR _barras =
+    CONCATENATEX (
+        _pts2,
+        VAR _h = DIVIDE ( [@fx], _fmax ) * ( _baseY - _py - 10 )
+        RETURN
+            "<rect x='" & FORMAT ( _px + ( [Value] - 1 ) * _passo + 1, "0" ) & "' y='" & FORMAT ( _baseY - _h, "0" ) & "' width='" & FORMAT ( _passo - 2, "0" ) & "' height='" & FORMAT ( MAX ( _h, 1 ), "0" ) & "' rx='1.5' fill='" & IF ( [Value] <= _j80, "#a855f7", "#334155" ) & "'>"
+                & "<title>" & FORMAT ( ( [Value] - 1 ) * 0.02, "0%" ) & "–" & FORMAT ( [Value] * 0.02, "0%" ) & " dos vendedores: " & FORMAT ( [@fx], "0.0%" ) & " da receita (acumulado " & FORMAT ( [@cum], "0%" ) & ")</title></rect>",
+        "", [Value], ASC
+    )
+VAR _linha =
+    _px & "," & _baseY & " "
+        & CONCATENATEX ( _pts2, FORMAT ( _px + [Value] * _passo, "0" ) & "," & FORMAT ( _baseY - [@cum] * ( _baseY - _py ), "0" ), " ", [Value], ASC )
+VAR _y80 = FORMAT ( _baseY - 0.8 * ( _baseY - _py ), "0" )
+VAR _x80 = FORMAT ( _px + _j80 * _passo, "0" )
+RETURN
+    "<div class='card' style='grid-area:p'>
+        <div class='ctitle' style='margin-bottom:2px'>Concentração (Pareto)</div>
+        <div style='font-size:12px;color:#94a3b8'><b style='color:#c4b5fd;font-size:16px'>" & FORMAT ( _qtd80, "#,##0" ) & "</b> de " & FORMAT ( _n, "#,##0" ) & " vendedores <b style='color:#ffffff'>(" & FORMAT ( _pct80, "0%" ) & ")</b> fazem <b style='color:#ffffff'>80%</b> da receita</div>
+        <svg viewBox='0 0 " & _W & " " & _H & "' style='flex:1;min-height:0;width:100%'>
+            <line x1='" & _px & "' x2='" & ( _W - _px ) & "' y1='" & _y80 & "' y2='" & _y80 & "' stroke='#f472b6' stroke-dasharray='4 4' opacity='0.6'/>
+            <text x='" & ( _W - _px ) & "' y='" & ( _y80 - 5 ) & "' text-anchor='end' font-size='10' fill='#f472b6'>80%</text>
+            <line x1='" & _x80 & "' x2='" & _x80 & "' y1='" & _py & "' y2='" & _baseY & "' stroke='#f472b6' stroke-dasharray='4 4' opacity='0.6'/>"
+            & _barras &
+            "<polyline points='" & _linha & "' fill='none' stroke='#22d3ee' stroke-width='2.5'/>
+            <text x='" & _px & "' y='" & ( _H - 6 ) & "' font-size='10' fill='#64748b'>0%</text>
+            <text x='" & ( _W - _px ) & "' y='" & ( _H - 6 ) & "' text-anchor='end' font-size='10' fill='#64748b'>100% dos vendedores</text>
+        </svg>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 7) HTML Mapa Vendedores  (quantidade de vendedores por estado)
+// ---------------------------------------------------------------------
+
+HTML Mapa Vendedores =
+VAR _estados =
+    DATATABLE (
+        "Sigla", STRING, "X", INTEGER, "Y", INTEGER, "Forma", STRING,
+        { { "SP", 254, 283, "M212 286L220 280L230 262L239 257L250 259L250 262L252 261L253 263L254 261L267 259L269 262L271 274L276 275L274 284L276 286L276 290L286 288L291 286L293 288L297 288L296 290L291 292L292 296L285 298L285 300L281 299L270 304L262 310L259 314L258 311L255 311L256 308L248 307L249 304L245 299L245 293L242 289L235 289L222 284L212 286Z" },
+            { "MA", 293, 107, "M329 83L329 86L325 90L322 90L317 98L319 108L316 113L316 117L318 119L317 124L312 125L306 124L299 131L291 133L286 146L287 152L286 161L282 159L278 155L280 152L274 147L277 141L280 141L281 136L275 137L268 128L270 126L271 121L271 112L262 107L258 109L270 101L275 94L287 65L286 67L289 66L290 68L291 67L292 70L293 68L293 72L298 69L299 72L301 73L300 78L302 76L303 78L299 88L302 85L303 81L306 79L303 83L305 84L310 78L312 81L314 79L325 84L328 84L325 82L329 83Z" },
+            { "PA", 212, 97, "M233 60L232 65L225 69L230 60L233 60ZM236 57L235 57L237 54L239 55L236 57ZM251 53L251 55L248 56L251 53ZM243 51L250 50L248 52L245 55L242 54L243 51ZM242 49L241 50L242 49ZM245 48L242 50L242 49L245 48ZM250 71L239 72L237 69L237 65L239 66L237 65L237 61L238 57L241 55L253 56L262 58L257 69L256 68L257 69L254 68L254 71L250 71ZM285 67L283 77L275 94L270 101L258 109L264 112L263 115L258 123L253 125L251 132L253 134L252 140L244 150L242 155L176 150L168 144L167 138L158 123L179 77L161 67L155 60L153 41L158 41L160 38L163 39L172 33L183 35L184 28L186 30L194 28L197 31L196 36L210 41L219 63L226 66L224 68L217 70L222 70L222 72L237 64L235 66L238 72L237 74L238 73L241 75L245 73L247 75L253 72L248 81L256 71L256 72L259 68L261 71L261 67L263 66L261 66L266 61L275 61L275 63L278 61L281 65L285 64L285 67Z" },
+            { "SC", 236, 333, "M254 321L253 323L252 322L255 333L253 344L251 346L251 345L251 348L243 355L238 354L242 346L235 345L231 339L221 333L206 332L207 323L228 327L229 324L235 321L242 321L245 323L254 321Z" },
+            { "BA", 328, 184, "M339 243L335 236L337 232L339 231L344 224L340 220L329 219L325 212L322 212L314 207L306 207L305 206L306 203L301 202L283 211L285 202L281 197L283 187L281 179L284 177L282 176L284 174L279 171L282 165L287 161L295 167L304 164L308 158L307 152L314 152L320 154L335 145L337 147L340 154L353 144L363 149L368 161L368 167L364 168L363 170L367 177L372 176L364 188L359 192L359 189L357 188L356 190L358 192L354 195L354 221L349 235L350 241L344 247L339 243Z" },
+            { "AP", 225, 39, "M226 66L219 63L210 41L196 36L196 34L196 29L203 33L211 30L215 32L219 28L221 22L229 11L230 12L230 9L231 10L233 17L234 14L234 20L238 32L240 36L246 37L246 40L237 52L232 55L226 66Z" },
+            { "MS", 196, 262, "M203 299L202 300L198 298L191 299L189 286L186 282L181 280L177 282L166 280L167 269L164 261L167 259L164 256L168 249L169 240L168 236L173 236L177 231L182 230L192 235L197 233L203 234L207 230L204 237L213 238L214 242L216 242L215 245L234 253L233 260L227 266L223 276L208 288L203 299Z" },
+            { "MG", 295, 245, "M233 260L234 253L240 246L248 244L249 245L253 242L264 244L270 240L270 235L268 234L271 229L269 224L270 219L275 217L275 209L278 209L279 206L283 207L283 211L301 202L306 203L305 206L306 207L314 207L322 212L325 212L329 219L340 220L344 224L336 234L335 236L339 243L332 242L333 244L330 246L331 251L328 251L331 255L330 258L326 265L321 267L316 280L283 287L281 290L276 290L276 286L274 284L276 275L271 274L269 262L267 259L254 261L254 263L252 261L250 262L250 259L239 257L233 260Z" },
+            { "GO", 248, 218, "M270 222L269 224L271 229L268 234L270 235L270 240L264 244L253 242L249 245L248 244L240 246L234 254L215 245L216 242L213 241L212 231L218 223L217 221L225 216L227 210L233 206L239 187L243 181L242 187L250 190L254 184L256 191L263 188L267 191L268 189L269 191L282 186L283 187L281 195L285 202L283 207L279 206L278 209L275 209L275 217L271 219L269 214L262 213L262 219L270 219L270 222Z" },
+            { "RS", 210, 358, "M243 355L233 372L221 383L221 380L228 376L235 365L234 363L231 366L228 361L229 365L227 372L222 374L220 380L221 383L216 393L209 399L209 394L212 390L215 390L216 383L211 388L206 382L195 374L190 370L186 372L186 369L179 362L176 364L172 363L186 346L189 345L188 343L204 332L213 331L227 336L235 345L242 346L238 354L243 355Z" },
+            { "TO", 262, 158, "M286 161L287 161L282 165L279 171L284 174L282 176L284 177L281 179L282 186L269 191L268 189L267 191L263 188L256 191L254 184L250 190L247 189L242 187L243 181L238 185L237 172L238 163L244 150L249 144L253 137L253 134L251 132L253 125L261 119L264 112L258 109L262 107L267 108L271 112L272 118L270 126L268 128L275 137L280 136L281 137L280 141L277 141L274 147L280 152L278 155L282 159L286 161Z" },
+            { "PI", 316, 131, "M287 161L286 161L287 152L286 146L291 133L299 131L306 124L312 125L317 124L318 119L316 117L316 113L319 108L317 98L322 90L327 88L329 83L334 85L333 90L336 98L335 106L339 122L343 126L340 132L341 139L329 148L327 151L320 154L311 151L307 152L308 158L303 164L295 167L287 161Z" },
+            { "AL", 380, 156, "M396 150L382 166L377 161L366 155L364 153L369 148L377 154L383 153L387 149L396 150Z" },
+            { "PB", 379, 130, "M399 124L400 135L393 134L392 136L383 138L377 142L376 139L374 139L377 134L375 132L364 137L360 135L362 131L360 127L362 122L366 123L375 118L372 125L380 126L381 129L384 122L399 124Z" },
+            { "CE", 351, 108, "M362 122L360 127L362 131L357 137L350 132L341 132L343 126L339 122L335 106L337 99L333 89L335 84L348 84L363 93L375 104L376 106L371 108L362 122Z" },
+            { "SE", 371, 167, "M382 166L369 177L365 175L363 170L364 168L366 168L368 167L368 161L366 155L377 161L382 166Z" },
+            { "RR", 128, 33, "M108 31L108 29L101 28L99 17L94 10L101 14L109 14L112 17L114 16L114 13L132 8L136 4L136 1L140 0L143 2L141 8L146 9L147 14L144 20L142 26L145 31L145 35L153 41L154 52L142 52L137 63L131 59L127 61L126 69L117 62L119 61L116 54L117 46L114 38L115 34L108 31Z" },
+            { "PE", 367, 143, "M396 150L387 149L383 153L377 154L369 148L364 153L361 148L360 149L353 144L340 154L337 147L332 145L341 139L341 136L340 132L341 132L350 132L356 137L360 135L364 137L375 132L377 134L374 139L376 139L377 142L383 138L389 138L393 134L397 134L400 136L400 139L396 150Z" },
+            { "PR", 226, 306, "M207 323L205 316L203 315L200 316L198 314L203 312L201 312L201 308L203 307L201 301L209 288L214 285L222 284L235 289L242 289L245 293L247 301L248 307L254 307L255 311L258 311L260 313L256 316L257 313L256 316L253 314L256 317L254 321L245 323L242 321L235 321L229 324L228 327L207 323Z" },
+            { "ES", 333, 259, "M321 271L321 267L326 265L330 258L331 255L328 251L331 251L330 246L333 244L332 242L337 242L344 247L343 258L329 277L322 274L321 271Z" },
+            { "RJ", 312, 285, "M292 296L291 292L297 289L291 286L316 280L318 272L321 271L322 274L329 277L328 279L328 284L318 289L317 293L308 293L308 290L306 290L306 293L299 293L302 293L299 292L296 295L296 292L295 292L292 293L294 295L292 296Z" },
+            { "RN", 381, 117, "M362 122L371 108L376 106L383 109L394 110L399 124L391 123L384 122L381 129L380 126L372 125L375 118L366 123L362 122Z" },
+            { "AM", 94, 98, "M108 31L115 34L114 38L117 46L116 54L119 61L117 62L123 68L126 69L127 61L131 59L135 63L139 61L142 52L154 52L154 58L159 65L176 76L178 76L180 79L158 123L162 129L158 144L126 144L124 145L115 137L107 137L102 142L101 147L95 148L92 152L90 151L85 154L78 152L74 157L37 141L2 131L3 128L9 124L7 120L10 109L19 104L30 101L33 98L40 100L46 67L43 60L39 55L39 48L48 47L47 43L41 43L41 36L58 36L58 33L60 36L66 32L69 36L70 42L72 41L79 46L85 44L85 47L90 42L100 38L101 34L108 31Z" },
+            { "MT", 185, 187, "M162 129L167 138L168 144L176 150L242 155L237 172L239 187L233 206L227 210L225 216L217 221L218 223L212 231L213 238L204 237L207 230L203 234L199 233L192 235L183 230L177 231L173 236L169 237L161 231L161 221L144 221L142 213L139 209L142 209L141 204L140 198L137 195L140 192L146 181L143 173L144 171L143 169L139 167L128 167L127 145L158 144L162 129Z" },
+            { "DF", 266, 216, "M270 219L262 219L262 213L269 214L270 219Z" },
+            { "AC", 37, 153, "M76 158L65 167L62 167L60 170L55 172L49 170L36 171L36 154L30 160L20 161L18 157L9 156L11 151L0 136L3 133L2 131L37 141L76 158Z" },
+            { "RO", 115, 167, "M137 195L134 193L126 194L122 189L116 188L113 185L100 183L93 179L89 170L89 155L74 157L78 152L85 154L90 151L92 152L95 148L101 147L102 142L107 137L115 137L121 145L127 145L128 167L139 167L143 169L144 171L143 173L146 181L140 192L137 195Z" } }
+    )
+VAR _t =
+    ADDCOLUMNS (
+        _estados,
+        "@c",
+            VAR _uf = [Sigla]
+            RETURN CALCULATE ( [Vendedores Ativos], KEEPFILTERS ( TREATAS ( { _uf }, dim_vendedor[uf] ) ) )
+    )
+VAR _tot = SUMX ( _t, [@c] )
+VAR _max = MAXX ( _t, [@c] )
+VAR _com = FILTER ( _t, NOT ISBLANK ( [@c] ) )
+VAR _formas = CONCATENATEX ( _t, "<path d='" & [Forma] & "' fill='#111a3a' stroke='#3b82f6' stroke-opacity='0.5' stroke-width='0.7'/>", "" )
+VAR _bolhas =
+    CONCATENATEX (
+        _com,
+        VAR _r = 3 + 26 * SQRT ( DIVIDE ( [@c], _max ) )
+        VAR _cor = IF ( [@c] >= 100, "#a855f7", IF ( [@c] >= 10, "#22d3ee", "#f472b6" ) )
+        RETURN
+            "<g><title>" & [Sigla] & ": " & FORMAT ( [@c], "#,##0" ) & " vendedores</title>"
+                & "<circle cx='" & [X] & "' cy='" & [Y] & "' r='" & FORMAT ( _r * 1.5, "0" ) & "' fill='" & _cor & "' fill-opacity='0.12'/>"
+                & "<circle cx='" & [X] & "' cy='" & [Y] & "' r='" & FORMAT ( _r, "0" ) & "' fill='" & _cor & "' fill-opacity='0.55' stroke='" & _cor & "'/>"
+                & IF ( _r >= 11, "<text x='" & [X] & "' y='" & ( [Y] + 4 ) & "' text-anchor='middle' font-size='10' font-weight='700' fill='#ffffff'>" & [Sigla] & "</text>", "" )
+            & "</g>",
+        "", [@c], DESC
+    )
+VAR _top5 = TOPN ( 5, _com, [@c], DESC )
+VAR _chips =
+    CONCATENATEX (
+        _top5,
+        "<div class='pill'><div style='font-size:12px;font-weight:700;color:#ffffff'>" & [Sigla] & "</div><div style='font-size:10px;color:#38bdf8'>" & FORMAT ( DIVIDE ( [@c], _tot ), "0%" ) & " · " & FORMAT ( [@c], "#,##0" ) & "</div></div>",
+        "", [@c], DESC
+    )
+VAR _sp = DIVIDE ( SUMX ( FILTER ( _t, [Sigla] = "SP" ), [@c] ), _tot )
+VAR _sulSud = DIVIDE ( SUMX ( FILTER ( _t, [Sigla] IN { "SP", "RJ", "MG", "ES", "PR", "SC", "RS" } ), [@c] ), _tot )
+RETURN
+    "<div class='card' style='grid-area:s'>
+        <div class='ctitle'>Onde estão os vendedores</div>
+        <div style='display:flex;gap:8px;margin-bottom:6px'>
+            <div class='pill' style='flex:1;padding:6px 8px'><div class='lbl' style='font-size:10px'>Em SP</div><div class='v' style='font-size:15px'>" & FORMAT ( _sp, "0%" ) & "</div></div>
+            <div class='pill' style='flex:1;padding:6px 8px'><div class='lbl' style='font-size:10px'>Sul + Sudeste</div><div class='v' style='font-size:15px'>" & FORMAT ( _sulSud, "0%" ) & "</div></div>
+        </div>
+        <div style='flex:1;min-height:0;display:flex'>
+            <svg viewBox='0 0 400 399' preserveAspectRatio='xMidYMin meet' style='flex:1;min-height:0;width:100%'>" & _formas & _bolhas & "</svg>
+        </div>
+        <div class='chips'>" & _chips & "</div>
+        <div class='leg' style='font-size:10px'>
+            <div><span style='background:#a855f7'></span>100+</div>
+            <div><span style='background:#22d3ee'></span>10–99</div>
+            <div><span style='background:#f472b6'></span>&lt; 10 vendedores</div>
+        </div>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 8) HTML Faixas Vendedores  (% dos vendedores × % da receita por faixa de pedidos)
+// ---------------------------------------------------------------------
+
+HTML Faixas Vendedores =
+VAR _s = FILTER ( ADDCOLUMNS ( VALUES ( fato_vendas[seller_id] ), "@p", [Pedidos], "@v", [Receita] ), NOT ISBLANK ( [@p] ) )
+VAR _nTot = COUNTROWS ( _s )
+VAR _vTot = SUMX ( _s, [@v] )
+VAR _faixas =
+    DATATABLE (
+        "Faixa", STRING, "Min", INTEGER, "Max", INTEGER, "Ord", INTEGER,
+        { { "até 10", 0, 10, 1 }, { "11 a 50", 11, 50, 2 }, { "51 a 200", 51, 200, 3 }, { "mais de 200", 201, 999999, 4 } }
+    )
+VAR _t =
+    ADDCOLUMNS (
+        _faixas,
+        "@pn",
+            VAR _mn = [Min]
+            VAR _mx = [Max]
+            RETURN DIVIDE ( COUNTROWS ( FILTER ( _s, [@p] >= _mn && [@p] <= _mx ) ), _nTot ),
+        "@pv",
+            VAR _mn = [Min]
+            VAR _mx = [Max]
+            RETURN DIVIDE ( SUMX ( FILTER ( _s, [@p] >= _mn && [@p] <= _mx ), [@v] ), _vTot )
+    )
+VAR _maxPct = MAX ( MAXX ( _t, [@pn] ), MAXX ( _t, [@pv] ) )
+VAR _linhas =
+    CONCATENATEX (
+        _t,
+        "<div style='display:flex;align-items:center;gap:8px;font-size:12px;color:#cbd5e1'>
+            <div style='width:84px'>" & [Faixa] & "</div>
+            <div style='flex:1;display:flex;flex-direction:column;gap:3px'>
+                <div style='display:flex;align-items:center;gap:6px'><div style='height:9px;border-radius:4px;width:" & FORMAT ( DIVIDE ( [@pn], _maxPct ) * 90, "0" ) & "%;background:#22d3ee;box-shadow:0 0 6px #22d3ee'></div><span style='font-size:10px;color:#67e8f9'>" & FORMAT ( [@pn], "0%" ) & "</span></div>
+                <div style='display:flex;align-items:center;gap:6px'><div style='height:9px;border-radius:4px;width:" & FORMAT ( DIVIDE ( [@pv], _maxPct ) * 90, "0" ) & "%;background:#a855f7;box-shadow:0 0 6px #a855f7'></div><span style='font-size:10px;color:#d8b4fe'>" & FORMAT ( [@pv], "0%" ) & "</span></div>
+            </div>
+        </div>",
+        "", [Ord], ASC
+    )
+RETURN
+    "<div class='card' style='grid-area:x'>
+        <div class='ctitle' style='margin-bottom:4px'>Vendedores por faixa de pedidos</div>
+        <div style='display:flex;gap:12px;font-size:10px;color:#cbd5e1;margin-bottom:4px'>
+            <div><span style='display:inline-block;width:10px;height:6px;background:#22d3ee;margin-right:4px;vertical-align:middle'></span>% dos vendedores</div>
+            <div><span style='display:inline-block;width:10px;height:6px;background:#a855f7;margin-right:4px;vertical-align:middle'></span>% da receita</div>
+        </div>
+        <div style='flex:1;display:flex;flex-direction:column;justify-content:space-around'>" & _linhas & "</div>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 9) HTML Minis Vendedores  (maior vendedor, vendedores em risco, retenção)
+// ---------------------------------------------------------------------
+
+HTML Minis Vendedores =
+VAR _o = [Ref Ano Mes]
+VAR _ano = INT ( _o / 10000 )
+VAR _mes = INT ( MOD ( _o, 10000 ) / 100 )
+VAR _s = FILTER ( ADDCOLUMNS ( VALUES ( fato_vendas[seller_id] ), "@v", [Receita], "@p", [Pedidos], "@n", [Nota Média] ), NOT ISBLANK ( [@v] ) )
+VAR _maior = DIVIDE ( MAXX ( _s, [@v] ), SUMX ( _s, [@v] ) )
+VAR _risco = COUNTROWS ( FILTER ( _s, [@p] >= 50 && [@n] < 3.8 ) )
+-- retenção: vendedores ativos no mesmo período do ano anterior que seguem ativos no ano atual
+VAR _antes = CALCULATETABLE ( VALUES ( fato_vendas[seller_id] ), dim_data[ano] = _ano - 1, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _agora = CALCULATETABLE ( VALUES ( fato_vendas[seller_id] ), dim_data[ano] = _ano, KEEPFILTERS ( dim_data[mes] <= _mes ) )
+VAR _ret = DIVIDE ( COUNTROWS ( INTERSECT ( _antes, _agora ) ), COUNTROWS ( _antes ) )
+RETURN
+    "<div class='kgrid'>
+        <div class='card mini'><div class='lbl'>🏆 Maior vendedor</div>
+            <div class='mv' style='font-size:22px;color:#c4b5fd'>" & FORMAT ( _maior, "0.0%" ) & "</div>
+            <div class='sub2'>da receita total</div></div>
+        <div class='card mini'><div class='lbl'>⚠️ Vendedores em risco</div>
+            <div class='mv' style='font-size:22px;color:#f87171'>" & COALESCE ( _risco, 0 ) & "</div>
+            <div class='sub2'>50+ pedidos e nota &lt; 3,8</div></div>
+        <div class='card mini'><div class='lbl'>🔁 Retenção</div>
+            <div class='mv' style='font-size:22px;color:#34d399'>" & IF ( ISBLANK ( _ret ), "—", FORMAT ( _ret, "0%" ) ) & "</div>
+            <div class='sub2'>dos vendedores de " & ( _ano - 1 ) & " seguem ativos</div></div>
+    </div>"
+
+
+// ---------------------------------------------------------------------
+// 10) HTML Vendedores  (medida final da página 4 — usar no visual HTML Content)
+// ---------------------------------------------------------------------
+
+HTML Vendedores =
+[HTML Estilo Vendedores]
+    & "<div class='dash'>"
+    & [HTML Cab Vendedores]
+    & [HTML Ranking Vendedores]
+    & [HTML Nota Volume]
+    & [HTML Pareto Vendedores]
+    & [HTML Mapa Vendedores]
+    & [HTML Faixas Vendedores]
+    & [HTML Minis Vendedores]
+    & "</div>"

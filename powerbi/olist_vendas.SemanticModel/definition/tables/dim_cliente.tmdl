@@ -1,0 +1,56 @@
+table dim_cliente
+	lineageTag: c6d7182a-266c-4867-861a-cf2e864b51cd
+
+	column customer_id
+		dataType: string
+		lineageTag: 225f1c77-8faf-4353-bc07-560570c8761e
+		summarizeBy: none
+		sourceColumn: customer_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_unique_id
+		dataType: string
+		lineageTag: dc785e2b-531a-4d05-a3c0-fb066030e92c
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column cidade
+		dataType: string
+		lineageTag: 7244a654-4983-4e48-996b-b98d45862aa8
+		summarizeBy: none
+		sourceColumn: cidade
+
+		annotation SummarizationSetBy = Automatic
+
+	column uf
+		dataType: string
+		lineageTag: 574496d9-c757-4850-97dc-1e1d1b379759
+		summarizeBy: none
+		sourceColumn: uf
+
+		annotation SummarizationSetBy = Automatic
+
+	column cep_prefixo
+		dataType: string
+		lineageTag: aad150d4-a30c-4c4d-b5c2-06fb35ad854f
+		summarizeBy: none
+		sourceColumn: cep_prefixo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_cliente = m
+		mode: import
+		source =
+				let
+				    Fonte = DatabricksMultiCloud.Catalogs("dbc-eb71337e-4cba.cloud.databricks.com", "/sql/1.0/warehouses/2acace36d690c6ad", [Catalog="workspace", Database="olist_gold", QueryTags=null, EnableAutomaticProxyDiscovery=null, Implementation="2.0", Protocol=null]),
+				    dim_cliente_olist_gold_workspace_Table = Fonte{[Item="dim_cliente",Schema="olist_gold",Catalog="workspace",Kind="Table"]}[Data]
+				in
+				    dim_cliente_olist_gold_workspace_Table
+
+	annotation PBI_NavigationStepName = Navegação
+
+	annotation PBI_ResultType = Table
+
