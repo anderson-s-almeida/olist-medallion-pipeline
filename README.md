@@ -32,7 +32,7 @@ flowchart LR
 
 - **Databricks Free Edition** – processamento com PySpark e armazenamento em Delta Lake (Unity Catalog)
 - **Apache Airflow 3** (Docker) – orquestração via `DatabricksRunNowOperator`
-- **Power BI** – relatório sobre a camada gold
+- **Power BI** – relatório de 4 páginas sobre a camada gold, com visual customizado em HTML/SVG gerado por DAX
 - **SQL** – análises de negócio sobre o modelo final
 
 ---
@@ -50,7 +50,12 @@ olist-medallion-pipeline/
 ├── sql/
 │   └── analises_negocio.sql    # perguntas de negócio respondidas em SQL
 ├── powerbi/
-│   └── README.md               # modelo, medidas DAX e prints
+│   ├── olist_vendas.pbip       # projeto Power BI (formato PBIP)
+│   ├── olist_vendas.Report/
+│   ├── olist_vendas.SemanticModel/
+│   ├── medidas/                # medidas DAX das 4 páginas
+│   ├── img/                    # prints das telas
+│   └── README.md               # telas, modelo e técnica
 ├── docs/
 │   └── dicionario_dados.md     # descrição das tabelas gold
 ├── requirements.txt
@@ -87,7 +92,19 @@ Conecte no **SQL Warehouse** do Databricks e importe as tabelas do schema `works
 
 ---
 
-## 📊 Perguntas de negócio respondidas
+## 📊 Relatório Power BI
+
+| Visão geral | Produtos & Categorias |
+|---|---|
+| ![](powerbi/img/tela1_visao_geral.png) | ![](powerbi/img/tela2_produtos.png) |
+| **Logística & Entregas** | **Vendedores** |
+| ![](powerbi/img/tela3_logistica.png) | ![](powerbi/img/tela4_vendedores.png) |
+
+Detalhes das telas, do modelo e da técnica de HTML via DAX em [`powerbi/README.md`](powerbi/README.md).
+
+---
+
+## ❓ Perguntas de negócio respondidas
 
 - Evolução mensal de faturamento e ticket médio
 - Categorias e estados com maior receita
@@ -104,7 +121,7 @@ Consultas em [`sql/analises_negocio.sql`](sql/analises_negocio.sql).
 - [ ] Carga incremental na silver com `MERGE`
 - [ ] Testes de qualidade de dados (contagem, nulos, chaves órfãs)
 - [ ] CI/CD com GitHub Actions + Databricks Asset Bundles
-- [ ] Publicação do relatório Power BI
+- [x] Relatório Power BI com 4 páginas
 
 ---
 
