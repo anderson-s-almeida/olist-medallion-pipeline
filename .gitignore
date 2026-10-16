@@ -1,0 +1,20 @@
+# dados brutos não vão para o repositório
+data/
+*.csv
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# segredos
+.env
+*.token
+
+# Power BI (arquivos locais do PBIP)
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+
+# Airflow local
+logs/
