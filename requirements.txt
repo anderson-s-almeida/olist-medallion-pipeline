@@ -1,0 +1,2 @@
+# Pacote extra para o Airflow (adicionar em _PIP_ADDITIONAL_REQUIREMENTS no .env)
+apache-airflow-providers-databricks
