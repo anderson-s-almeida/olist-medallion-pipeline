@@ -28,6 +28,16 @@ flowchart LR
 
 ---
 
+## ⚙️ Orquestração
+
+O Airflow dispara diariamente (06:00) o Job `olist_medallion` no Databricks, que executa as três camadas em sequência.
+
+| Airflow – DAG `olist_medallion_pipeline` | Databricks – Job `olist_medallion` |
+|---|---|
+| ![DAG no Airflow](docs/img/airflow_dag.png) | ![Job no Databricks](docs/img/databricks_job.png) |
+
+---
+
 ## 🧰 Tecnologias
 
 - **Databricks Free Edition** – processamento com PySpark e armazenamento em Delta Lake (Unity Catalog)
@@ -57,7 +67,8 @@ olist-medallion-pipeline/
 │   ├── img/                    # prints das telas
 │   └── README.md               # telas, modelo e técnica
 ├── docs/
-│   └── dicionario_dados.md     # descrição das tabelas gold
+│   ├── dicionario_dados.md     # descrição das tabelas gold
+│   └── img/                    # prints do Airflow e do Databricks
 ├── requirements.txt
 └── README.md
 ```
@@ -77,14 +88,14 @@ olist-medallion-pipeline/
 
 ### 2. Databricks
 1. Importe a pasta `notebooks/` no workspace (ou conecte este repositório via **Git folders**).
-2. Crie **3 Jobs** (Workflows → Jobs), um para cada notebook, e anote o `job_id` de cada um.
+2. Crie **1 Job** (Jobs & Pipelines → Job) com 3 tarefas encadeadas — `bronze` → `silver` → `gold` — em compute Serverless, e anote o `job_id`.
 3. Gere um token de acesso: **Settings → Developer → Access tokens**.
 
 ### 3. Airflow
 1. Suba o Airflow com Docker e instale o provider do Databricks (`requirements.txt`).
 2. Crie a conexão `databricks_default` (Admin → Connections) com o host do workspace e o token.
-3. Crie as variáveis (Admin → Variables):
-   - `olist_job_bronze`, `olist_job_silver`, `olist_job_gold` → IDs dos jobs
+3. Crie a variável (Admin → Variables):
+   - `olist_job_id` → ID do Job no Databricks
 4. Copie `dags/olist_medallion_dag.py` para a pasta `dags/` do Airflow e ative a DAG.
 
 ### 4. Power BI
