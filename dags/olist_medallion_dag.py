@@ -1,19 +1,19 @@
 """
 DAG: olist_medallion_pipeline
 
-Orquestra o pipeline medalhão da Olist no Databricks:
+Orquestra o pipeline medalhão da Olist no Databricks.
+O Job `olist_medallion` tem 3 tarefas encadeadas:
     bronze  ->  silver  ->  gold
 
 Pré-requisitos no Airflow:
     - Conexão `databricks_default` (host do workspace + token)
-    - Variáveis: olist_job_bronze, olist_job_silver, olist_job_gold (IDs dos Jobs)
+    - Variável `olist_job_id` (ID do Job no Databricks)
 """
 
 from datetime import datetime, timedelta
 
-from airflow.models import Variable
 from airflow.providers.databricks.operators.databricks import DatabricksRunNowOperator
-from airflow.sdk import DAG
+from airflow.sdk import DAG, Variable
 
 DEFAULT_ARGS = {
     "owner": "data-engineering",
@@ -32,22 +32,8 @@ with DAG(
     tags=["olist", "databricks", "medallion"],
 ) as dag:
 
-    bronze = DatabricksRunNowOperator(
-        task_id="bronze_ingestao",
+    rodar_job = DatabricksRunNowOperator(
+        task_id="rodar_job_olist_medallion",
         databricks_conn_id="databricks_default",
-        job_id=Variable.get("olist_job_bronze"),
+        job_id=Variable.get("olist_job_id"),
     )
-
-    silver = DatabricksRunNowOperator(
-        task_id="silver_tratamento",
-        databricks_conn_id="databricks_default",
-        job_id=Variable.get("olist_job_silver"),
-    )
-
-    gold = DatabricksRunNowOperator(
-        task_id="gold_modelagem",
-        databricks_conn_id="databricks_default",
-        job_id=Variable.get("olist_job_gold"),
-    )
-
-    bronze >> silver >> gold
