@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # 02 - Silver | Olist
 # MAGIC Limpeza, tipagem, deduplicação e padronização das tabelas bronze.

@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "4"
+# ///
 # MAGIC %md
 # MAGIC # 03 - Gold | Olist
 # MAGIC Modelo estrela para consumo no Power BI:

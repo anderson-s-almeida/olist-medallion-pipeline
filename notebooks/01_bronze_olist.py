@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "6"
+# ///
 # MAGIC %md
 # MAGIC # 01 - Bronze | Olist
 # MAGIC Lê os CSVs brutos do volume e grava cada arquivo como tabela Delta na camada bronze,
